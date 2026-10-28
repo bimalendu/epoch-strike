@@ -240,7 +240,7 @@ function handledEventTypes() {
  * sound or the visual that goes with them is made by the code that raised them. Anything NEW has to be handled in
  * PlayScene.onEvent or be added here on purpose.
  */
-const INFORMATIONAL = new Set(['sfx', 'fell', 'hazard', 'bomb', 'alarm', 'lavaRise', 'arenaWave', 'tankHit', 'tankLost', 'bikeHit', 'bikeLost']);
+const INFORMATIONAL = new Set(['sfx', 'hazard', 'bomb', 'alarm', 'lavaRise', 'arenaWave', 'tankHit', 'tankLost', 'bikeHit', 'bikeLost']);
 
 test('every event type the world pushes is handled by the play scene or is listed as informational', () => {
   const pushed = pushedEventTypes();

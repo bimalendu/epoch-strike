@@ -32,7 +32,7 @@ export class PlayScene {
    *   resume = true restarts from the last checkpoint of this level (used by Continue);
    *   fromSave = the run was loaded from the mid-run save (no new save is written).
    */
-  constructor(game, { run, levelIndex = run.levelIndex, resume = false, fromSave = false, god = false } = {}) {
+  constructor(game, { run, levelIndex = run.levelIndex, resume = false, fromSave = false, god = run.god } = {}) {
     this.game = game;
     this.run = run;
     this.levelIndex = levelIndex;
@@ -210,6 +210,10 @@ export class PlayScene {
         this.freezeF = HIT_STOP.death;
         if (run.lives.lives === 1) this.toasts.push('LAST LIFE', { color: '#ff6a6a' });
         break;
+      case 'fell':
+        // god mode never dies to a pit: put the player back on the last safe ground
+        if (w.god && w.player.alive) w.respawnPlayer(w.player.safeX, w.player.safeY);
+        break;
       case 'checkpoint':
         run.checkpoint = { levelIndex: this.levelIndex, x: e.x, y: e.y };
         this.toasts.push('CHECKPOINT', { color: '#8be9ff' });
@@ -324,6 +328,7 @@ export class PlayScene {
       intro: this.introK,
       trail: this.trail,
       large: this.game.save.options.hud === 'large',
+      god: w.god,
     });
     this.toasts.draw(ctx, this.game.save.options.hud === 'large' ? 64 : w.boss ? 62 : 36);
     if (this.clearT >= 0) {

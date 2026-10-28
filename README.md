@@ -100,6 +100,9 @@ npm run e2e        # the browser suite (Playwright: needs `npm ci` then `npx pla
 | `npm run perf` | simulation time and canvas-call counts per level and boss |
 | `npm run economy` | the lives economy of the whole game, level by level |
 
+On the main menu, LEFT RIGHT LEFT RIGHT BOMB (V) reveals a hidden **GOD MODE** entry for the session: every level open, as an
+invincible practice run (scores and saves untouched). Press it again to hide it.
+
 The code is organised in layers (engine, game simulation, art, scenes) and every registry (enemies, bosses, levels, music
 tracks, weapons) has one place to add to. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing anything. The
 git history follows a 16-week sprint plan, about one commit per week, so `git log` reads as the story of the build.

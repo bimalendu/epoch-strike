@@ -63,7 +63,7 @@ export class ResultsScene {
     run.totalTime += run.timeThisLevel;
     const idx = this.levelIndex;
     if (run.practice) {
-      game.go('levelselect');
+      game.go('levelselect', { god: run.god });
       return;
     }
     if (idx >= 0) game.save.unlock(idx + 1);

@@ -149,6 +149,7 @@ function drawCorners(ctx, world, run, extra, k) {
     ctx.drawImage(k > 1 ? plates.scoreOne : combo ? plates.scoreTall : plates.score, Math.round(vw / 2 - 36), 2);
   }
   ctx.drawImage(plates.slots, vw - 5 - 38 - 2, 2);
+  if (extra.god) drawText(ctx, 'GOD', 5, hasRide ? 42 : 31, '#ff5a4a', 1, 'left', '#000000');
   // lives: six slots, filled vs empty, so the cap is always visible; the last life bobs
   for (let i = 0; i < LIVES.MAX; i++) {
     const last = lives === 1 && i === 0 && Math.floor(world.time * 4) % 2 === 0;

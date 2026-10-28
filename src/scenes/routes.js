@@ -24,7 +24,7 @@ export function registerRoutes(game) {
   r.options = (p) => new OptionsScene(game, p);
   r.controls = () => new ControlsScene(game);
   r.scores = (p) => new HighScoresScene(game, p);
-  r.levelselect = () => new LevelSelectScene(game);
+  r.levelselect = (p) => new LevelSelectScene(game, p);
 
   // A finished run (game over with no continues, or the credits after the ending): clear the mid-run save, then take the
   // initials if the score made the top 10, else go back to the menu. Practice runs never score.

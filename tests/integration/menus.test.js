@@ -414,3 +414,130 @@ test('name entry: left and right stop at the ends, confirm steps right before ac
   assert.equal(game.save.scores.length, 1);
   assert.ok(game.scene instanceof HighScoresScene);
 });
+
+// ---- GOD MODE: the hidden developer entry ----
+
+const GOD = ['left', 'right', 'left', 'right', 'bomb'];
+const typeGod = (game) => { for (const k of GOD) tap(game, k); stepN(game, 2); };
+const labels = (game) => game.scene.menu.items.map((_, i) => game.scene.menu.label(i));
+
+function bootMenu() {
+  const b = boot();
+  b.game.go('menu');
+  stepN(b.game, 2);
+  return b;
+}
+
+test('GOD MODE is not on the main menu until the sequence is typed', () => {
+  const { game } = bootMenu();
+  assert.ok(!labels(game).includes('GOD MODE'));
+  for (const k of ['left', 'right', 'left', 'right', 'down', 'bomb']) tap(game, k);
+  assert.ok(!labels(game).includes('GOD MODE'), 'a wrong key in the middle cancels it');
+});
+
+test('the sequence reveals GOD MODE with a sound and a flash, keeps the cursor and a second time hides it', () => {
+  const { game } = bootMenu();
+  const sounds = [];
+  game.audio = { sfx: (n) => sounds.push(n), setVolumes() {} };
+  tap(game, 'down'); // LEVEL SELECT
+  typeGod(game);
+  assert.deepEqual(labels(game), ['START', 'CONTINUE', 'LEVEL SELECT', 'GOD MODE', 'OPTIONS', 'CONTROLS', 'HIGH SCORES', 'CREDITS']);
+  assert.ok(sounds.includes('oneup'));
+  assert.equal(game.scene.menu.label(game.scene.menu.index), 'LEVEL SELECT', 'the cursor stays on its entry');
+  const m = game.scene.menu;
+  const godItem = m.items[3];
+  const seen = new Set();
+  for (let i = 0; i < 90; i++) { stepN(game, 1); seen.add(godItem.color()); }
+  assert.deepEqual([...seen].sort(), ['#ff5a4a', '#ffffff'], 'it blinks white and red, then settles');
+  assert.equal(godItem.color(), '#ff5a4a');
+  typeGod(game);
+  assert.ok(!labels(game).includes('GOD MODE'));
+  assert.ok(sounds.includes('menuBack'));
+  assert.equal(game.godMenu, false);
+  game.audio = null;
+});
+
+test('the reveal lasts the session: it survives a trip to the title and is gone in a fresh game', () => {
+  const { game } = bootMenu();
+  typeGod(game);
+  game.go('title');
+  stepN(game, 2);
+  game.go('menu');
+  stepN(game, 2);
+  assert.ok(labels(game).includes('GOD MODE'));
+  assert.equal(game.save.resume, null);
+  assert.ok(!labels(bootMenu().game).includes('GOD MODE'), 'nothing was saved');
+});
+
+test('GOD MODE opens a level select with every level unlocked and starts invincible practice runs', () => {
+  const { game } = bootMenu();
+  typeGod(game);
+  assert.equal(game.save.unlocked, 0);
+  selectItem(game, 'GOD MODE');
+  const ls = game.scene;
+  assert.ok(ls instanceof LevelSelectScene);
+  assert.ok(ls.menu.items.every((_, i) => ls.menu.enabled(i)), 'nothing is locked');
+  assert.ok(!ls.menu.label(5).includes('???'));
+  for (let i = 0; i < 5; i++) tap(game, 'down'); // a locked level in the normal list
+  tap(game, 'confirm');
+  stepN(game, 2);
+  const play = game.scene;
+  assert.ok(play instanceof PlayScene);
+  assert.equal(play.levelIndex, 5);
+  assert.equal(play.world.god, true);
+  assert.equal(play.run.practice, true);
+  assert.equal(game.save.resume, null);
+  assert.equal(game.save.unlocked, 0);
+});
+
+test('the normal level select still hides locked levels and is not invincible', () => {
+  const { game } = bootMenu();
+  typeGod(game);
+  selectItem(game, 'LEVEL SELECT');
+  const ls = game.scene;
+  assert.ok(!ls.menu.enabled(1));
+  tap(game, 'confirm');
+  stepN(game, 2);
+  assert.equal(game.scene.world.god, false);
+});
+
+test('a god run stays invincible after restarting the level and returns to the god level select', () => {
+  const { game } = bootMenu();
+  typeGod(game);
+  selectItem(game, 'GOD MODE');
+  tap(game, 'confirm');
+  stepN(game, 2);
+  game.scene.restart();
+  stepN(game, 2);
+  assert.equal(game.scene.world.god, true, 'restart keeps god mode');
+  const play = game.scene;
+  game.go('results', { run: play.run, levelIndex: 0, world: play.world });
+  stepN(game, 60 * 6);
+  tap(game, 'confirm');
+  stepN(game, 2);
+  assert.ok(game.scene instanceof LevelSelectScene);
+  assert.equal(game.scene.god, true);
+});
+
+test('god mode rescues the player from a pit; without it the fall still kills', () => {
+  for (const god of [true, false]) {
+    const { game } = bootMenu();
+    game.go('play', { run: new Run({ practice: true, god }), levelIndex: 0 });
+    stepN(game, 30);
+    const { world } = game.scene;
+    const p = world.player;
+    const { safeX, safeY } = p;
+    p.y = world.level.rows * TILE + 200;
+    const events = [];
+    const orig = game.scene.onEvent.bind(game.scene);
+    game.scene.onEvent = (e) => { events.push(e.type); orig(e); };
+    stepN(game, 3);
+    if (god) {
+      assert.ok(p.alive && p.y < world.level.rows * TILE, 'back on solid ground');
+      assert.ok(events.includes('fell') && !events.includes('playerDied'));
+      assert.ok(Math.abs(p.x - safeX) < TILE * 4 && Math.abs(p.y - safeY) < TILE * 4, 'at the last safe spot');
+    } else {
+      assert.ok(events.includes('fell') && events.includes('playerDied'), 'a normal run dies');
+    }
+  }
+});

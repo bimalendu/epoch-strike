@@ -5,7 +5,8 @@ import { drawText } from '../engine/font.js';
 export class Menu {
   /**
    * items: [{ label: string | () => string, enabled?: boolean | () => boolean,
-   *           onSelect?(), onLeft?(), onRight?() }]
+   *           color?: string | () => string, onSelect?(), onLeft?(), onRight?() }]
+   * `color` replaces the usual colours (disabled items stay grey).
    */
   constructor(items, { x = 240, y = 100, gap = 17, align = 'center', scale = 1 } = {}) {
     this.items = items;
@@ -67,7 +68,9 @@ export class Menu {
     for (let i = 0; i < this.items.length; i++) {
       const sel = i === this.index;
       const on = this.enabled(i);
-      const color = !on ? '#555566' : sel ? '#ffd23a' : '#c8d0e0';
+      const own = this.items[i].color;
+      const custom = typeof own === 'function' ? own(sel) : own;
+      const color = !on ? '#555566' : custom || (sel ? '#ffd23a' : '#c8d0e0');
       const text = this.label(i);
       const y = this.y + i * this.gap;
       drawText(ctx, text, this.x, y, color, this.scale, this.align, '#000000');

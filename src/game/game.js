@@ -19,6 +19,7 @@ export class Game {
     this.frame = 0;
     this.routes = {}; // name -> (params) => scene; registered by main.js (or tests)
     this.muted = false;
+    this.godMenu = false; // the developer GOD MODE entry is revealed for this session only and is never saved
     this.onDisplay = null; // the page hooks this to apply the display options (the CRT filter) outside the canvas
   }
 

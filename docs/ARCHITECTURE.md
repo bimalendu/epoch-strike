@@ -184,6 +184,16 @@ list built from the level and boss registries (`creditsScript`; a test keeps `BO
 ends in `runEnd` (the high-score entry when the final score qualifies, otherwise the menu). The main menu's CREDITS entry plays
 the same scene and returns to the menu.
 
+## God mode (the developer entry)
+
+Typing LEFT RIGHT LEFT RIGHT BOMB on the main menu (`ui/combo.js`: `ComboTracker`, a pure detector; a wrong action restarts it
+and so does a pause longer than 1.5 s) shows or hides a GOD MODE entry after LEVEL SELECT. It works on keyboard, pad and touch
+and lasts the session only: the flag is `game.godMenu`, never saved. Revealing it plays `oneup` and blinks the entry. It opens
+`levelselect` with `{ god: true }`: every level is open and each pick is a **practice** run with `Run.god` set, so scores, the
+mid-run save and unlocks stay untouched. `PlayScene` defaults its `god` to `run.god`, so restart, Continue and the return from
+results (`levelselect` again, with `{ god: run.god }`) keep it. The world only ignores the fall; `PlayScene` answers the `fell`
+event by putting the player back on `safeX/safeY`, as the bot does. The HUD (`extra.god`) draws a `GOD` tag under the lives plate.
+
 ## Music
 
 `engine/music.js` is pure: a track (see `game/tracks.js`) is tempo, key, scale and a few bars of text patterns per voice

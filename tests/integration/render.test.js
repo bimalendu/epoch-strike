@@ -249,6 +249,8 @@ test('the HUD shows TANK armour pips, a barrier timer that shrinks, and the aren
     return c;
   };
   const base = hud(() => {});
+  assert.ok(diffPixels(base, hud(() => {}, { god: true })) > 10, 'GOD tag');
+  assert.ok(diffPixels(hud(() => {}, { god: false }), base) === 0, 'no tag without god');
   assert.ok(diffPixels(base, hud((w) => w.player.mountTank())) > 40, 'TANK label and pips');
   const pips = (hp) => hud((w) => { w.player.mountTank(); w.player.tankHp = hp; });
   assert.ok(diffPixels(pips(1), pips(3)) > 10, 'fewer pips lit with less armour');

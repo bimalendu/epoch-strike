@@ -9,7 +9,7 @@ export function defaultLoadout() {
 }
 
 export class Run {
-  constructor({ difficulty = 'normal', levelIndex = 0, hi = 0, practice = false } = {}) {
+  constructor({ difficulty = 'normal', levelIndex = 0, hi = 0, practice = false, god = false } = {}) {
     this.difficulty = difficulty;
     this.lives = new LivesManager({ difficulty });
     this.score = new ScoreManager(this, { hi });
@@ -24,6 +24,7 @@ export class Run {
     this.timeThisLevel = 0;
     this.totalTime = 0;
     this.practice = practice; // level-select practice runs don't count for scores
+    this.god = god; // the developer's invincible run: always a practice run, so it is never saved
     this.startedAt = Date.now();
   }
 
