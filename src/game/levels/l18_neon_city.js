@@ -2,6 +2,9 @@
 // then a rooftop chase: the camera drives on at a run while you leap the street gaps between towers, and attack
 // helicopters hang over the skyline shooting down at you. The Gunship Helicopter waits over the last avenue.
 // The era's weapon is the Plasma Cannon.
+//
+// The city is built on hills: 22-degree streets, a 45-degree ramp up to the overpass and up the fire escape, and a steep rubble pile. The
+// rooftop chase (a forced scroll across the gaps between towers) and the avenue under the gunship are level.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -15,38 +18,46 @@ export const neonCity = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 17 });
 
-    // --- 1. The boulevard ---
-    let s = b.flat(46);
+    // --- 1. The boulevard, rolling over the first of the city's hills ---
+    let s = b.flat(14);
     s.capsule('E', 8, 6);
     s.prompt('CYBORGS FIRE FAST BURSTS. KEEP MOVING AND USE THE COVER', 4, 28);
     b.prop('neonsign', s.x0 + 10, { col: '#ff4ad8' });
-    b.prop('streetlamp', s.x0 + 20);
-    b.prop('neonsign', s.x0 + 34, { col: '#4af0ff', h: 90 });
-    b.block(s.x0 + 18, 2, 2); // a planter and a bench to take cover behind
-    b.block(s.x0 + 30, 2, 2);
-    s.enemy('cyborg', 14);
-    s.enemy('cyborg', 24);
-    s.enemy('hunter', 20, { row: 6 });
-    s.enemy('cyborg', 38);
-    s.medals(12, 10, 3, 2);
+    b.slope(2, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('cyborg', 3);
+    s.enemy('hunter', 6, { row: b.rowAbove(7) });
+    s.medalsAbove(1, 3, 2, 2);
+    b.prop('streetlamp', s.x0 + 8);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(22);
+    b.block(s.x0 + 4, 2, 2); // a planter and a bench to take cover behind
+    s.enemy('cyborg', 8);
+    b.block(s.x0 + 14, 2, 2);
+    s.enemy('cyborg', 18);
+    b.prop('neonsign', s.x0 + 20, { col: '#4af0ff', h: 90 });
     b.pit(3, { fill: 'spikes' }); // a roadworks trench
 
-    // --- 2. The underpass: snipers behind glass, laser turrets in the walls ---
-    s = b.flat(44);
+    // --- 2. The underpass: a 45-degree ramp up to the overpass, snipers behind glass, laser turrets in the walls ---
+    s = b.flat(12);
     s.checkpoint(1);
     s.prompt('SNIPERS AIM FOR A SECOND, THEN FIRE FAST. LASER TURRETS COVER THE ROAD', 2, 30);
-    b.prop('streetlamp', s.x0 + 12);
-    b.prop('billboard', s.x0 + 30);
-    const deck = b.platform(s.x0 + 14, 10, 14);
-    b.addEnemy('sniperbot', deck.x0 + 3, { row: 10 });
-    b.addEnemy('cyborg', deck.x0 + 10, { row: 10 });
+    b.prop('streetlamp', s.x0 + 4);
     s.enemy('laserturret', 8);
-    s.enemy('cyborg', 20);
-    s.enemy('laserturret', 33);
-    s.enemy('hunter', 26, { row: 6 });
-    s.enemy('cyborg', 40);
-    s.capsule('S', 16, 5);
-    s.medals(18, 8, 4, 2, 2);
+    b.slope(2, { angle: 45 });
+    s = b.flat(26);
+    const deck = b.platform(s.x0 + 4, b.gy - 4, 14);
+    b.addEnemy('sniperbot', deck.x0 + 3, { row: b.gy - 4 });
+    b.addEnemy('cyborg', deck.x0 + 10, { row: b.gy - 4 });
+    s.enemy('cyborg', 3);
+    s.enemy('hunter', 12, { row: b.rowAbove(7) });
+    s.enemy('laserturret', 22);
+    b.prop('billboard', s.x0 + 18);
+    s.capsule('S', 16, b.rowAbove(8));
+    s.medalsAbove(6, 4, 4, 2, 2);
+    b.slope(-2, { angle: 45 });
+    s = b.flat(8);
+    s.enemy('cyborg', 4);
 
     // --- 3. Chop shop alley ---
     b.pit(3, { fill: 'spikes' });
@@ -63,8 +74,13 @@ export const neonCity = {
     s.enemy('laserturret', 36);
     s.capsule('R', 4, 6);
 
-    // --- 4. Up the fire escape ---
-    b.up(3);
+    // --- 4. A rubble pile slid down, then up the fire escape ---
+    b.flat(4);
+    b.slope(2, { angle: 45 });
+    b.flat(3);
+    b.slope(-2, { angle: 67 });
+    b.flat(4);
+    b.slope(3, { angle: 45 });
     s = b.flat(12);
     s.checkpoint(1);
     s.prompt('THE ROOFTOP CHASE! THE SCREEN KEEPS SCROLLING. JUMP THE GAPS, DO NOT FALL BEHIND', 0, 30);
@@ -124,7 +140,7 @@ export const neonCity = {
     b.autoscroll(rideStart, rideEnd, 50);
 
     // --- 6. Back down to the avenue ---
-    b.down(3);
+    b.slope(-3, { angle: 45 });
     s = b.flat(24);
     s.checkpoint(1);
     s.prompt('THE CHASE IS OVER. CATCH YOUR BREATH', 1, 20);

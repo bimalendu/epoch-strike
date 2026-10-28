@@ -4,6 +4,9 @@
 // stand quietly until the alarm, a shot, or you walking up to them: the catwalks overhead let you slip past. Snowmobiles
 // thunder across the screen, SAM sites lob missiles, and at the end the Missile Silo Mech lumbers out of its silo.
 // The era's weapon is the Plasma Cannon.
+//
+// The tundra is not flat: snow drifts at 22 degrees along the road in, the radar ridge climbed over an ice slope at 45 degrees, and a
+// steep ice slide down to the main gate. The searchlight roads and the Mech's arena (a light needs level ground) are flat.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -17,9 +20,13 @@ export const missileBase = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 16 });
 
-    // --- 1. The perimeter: the first searchlight ---
-    let s = b.flat(48);
+    // --- 1. The perimeter: snow drifts on the road in, then the first searchlight ---
+    let s = b.flat(12);
     s.capsule('E', 8, 6);
+    b.slope(2, { angle: 22 });
+    b.flat(6);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(48);
     b.prop('radar', s.x0 + 42, { h: 96 });
     s.prompt('A SEARCHLIGHT! STAY OUT OF THE LIGHT OR THE ALARM RINGS. CRATES CAST SHADOWS', 4, 30);
     b.searchlight(s.x0 + 16, s.x0 + 38, { tower: s.x0 + 27, height: 9, period: 7 });
@@ -46,7 +53,11 @@ export const missileBase = {
     s.medals(20, 8, 4, 2, 2);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 3. The motor pool: snowmobiles under a second searchlight ---
+    // --- 3. The motor pool: over a drift, then snowmobiles under a second searchlight ---
+    b.flat(6);
+    b.slope(1, { angle: 22 });
+    b.flat(4);
+    b.slope(-1, { angle: 22 });
     s = b.flat(48);
     s.checkpoint(1);
     s.prompt('SNOWMOBILES CHARGE ACROSS THE WHOLE SCREEN. JUMP THEM', 3, 28);
@@ -60,8 +71,8 @@ export const missileBase = {
     s.capsule('R', 6, 6);
     s.medals(14, 10, 3, 2);
 
-    // --- 4. The radar ridge: SAM sites and sentry guns ---
-    b.up(2);
+    // --- 4. The radar ridge, climbed over an ice slope at 45 degrees: SAM sites and sentry guns ---
+    b.slope(2, { angle: 45 });
     s = b.flat(46);
     s.checkpoint(1);
     s.prompt('SAM SITES LOB MISSILES. SENTRY GUNS COVER THE ROAD', 2, 26);
@@ -76,7 +87,7 @@ export const missileBase = {
     s.enemy('recon', 34, { row: 5 });
     s.capsule('B', 18, 5);
     s.medals(28, 8, 3, 2);
-    b.down(2);
+    b.slope(-2, { angle: 45 });
 
     // --- 5. The silo row: the missiles are warming up ---
     s = b.flat(48);
@@ -98,6 +109,12 @@ export const missileBase = {
     b.addPickup('1up', top.x0 + 1, 3);
     s.medals(26, 9, 4, 2, 2);
     b.pit(4, { fill: 'spikes' });
+
+    // --- (the ice slide: over the last ridge and down the scree to the gate) ---
+    b.flat(6);
+    b.slope(2, { angle: 45 });
+    b.flat(4);
+    b.slope(-2, { angle: 67 });
 
     // --- 6. The main gate: the last searchlight and the last guards ---
     s = b.flat(44);

@@ -3,6 +3,9 @@
 // walk along the ceiling over a floor of spikes (orb mines drift through the dark) and fall back down at the far end. Then
 // a hoverbike: you ride the skyway in free flight with the camera rolling on, dodging laser emitters, hover-bikers and
 // mines, and set down in front of the AI Core Hydra. The era's weapon is the Plasma Cannon.
+//
+// The megastructure has tiers: a 45-degree ramp up to the first, a steep maintenance chute down from it, and another ramp up to the
+// server decks. The skyway slabs, the gravity halls (the world flips, so the floor must be flat) and the hoverbike run are level.
 
 import { LevelBuilder } from '../levelgen.js';
 import { T } from '../tiles.js';
@@ -18,18 +21,22 @@ export const cyberCity = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 18 });
 
-    // --- 1. The data streets ---
-    let s = b.flat(46);
+    // --- 1. The data streets: a ramp up to the first tier, and a maintenance chute down the far side ---
+    let s = b.flat(12);
     s.capsule('E', 8, 6);
     s.prompt('CYBER-HOUNDS SPRINT AT YOU AND LEAP. SENTINELS ARE ARMOURED: SHOOT THE GLOWING CORE', 4, 34);
-    b.prop('serverstack', s.x0 + 10);
-    b.prop('neonsign', s.x0 + 18, { col: '#4af0ff' });
-    b.prop('serverstack', s.x0 + 27, { h: 80 });
+    b.prop('serverstack', s.x0 + 8);
+    b.slope(2, { angle: 45 });
+    s = b.flat(16);
+    s.enemy('cyberhound', 4);
+    s.enemy('cyborg', 10);
+    b.prop('neonsign', s.x0 + 8, { col: '#4af0ff' });
+    s.medalsAbove(3, 3, 2, 2);
+    b.slope(-2, { angle: 67 });
+    s = b.flat(20);
+    s.enemy('sentinel', 6);
     s.enemy('cyberhound', 14);
-    s.enemy('cyborg', 22);
-    s.enemy('sentinel', 34);
-    s.enemy('cyberhound', 42);
-    s.medals(12, 10, 3, 2);
+    b.prop('serverstack', s.x0 + 14, { h: 80 });
     b.pit(3, { fill: 'spikes' });
 
     // --- 2. The skyway slabs: ceiling guns ---
@@ -60,19 +67,23 @@ export const cyberCity = {
     s.enemy('cyborg', 6);
     s.enemy('cyberhound', 10);
 
-    // --- 4. The server canyon ---
-    s = b.flat(34);
+    // --- 4. The server canyon: a 45-degree ramp up to the deck tier, and a gentle way down ---
+    s = b.flat(8);
     s.prompt('MORE SENTINELS. THE ARMOUR SHRUGS OFF EVERYTHING BUT THE CORE', 2, 28);
-    b.prop('serverstack', s.x0 + 6, { h: 90 });
-    b.prop('serverstack', s.x0 + 22);
-    const deck = b.platform(s.x0 + 8, 10, 10);
-    b.addEnemy('cyborg', deck.x0 + 3, { row: 10 });
-    b.addEnemy('cyborg', deck.x0 + 7, { row: 10 });
-    s.enemy('sentinel', 18);
-    s.enemy('cyberhound', 24);
-    s.enemy('cyborg', 29);
-    s.capsule('B', 14, 5);
-    s.medals(20, 8, 3, 2);
+    b.prop('serverstack', s.x0 + 4, { h: 90 });
+    b.slope(3, { angle: 45 });
+    s = b.flat(20);
+    const deck = b.platform(s.x0 + 2, b.gy - 4, 10);
+    b.addEnemy('cyborg', deck.x0 + 3, { row: b.gy - 4 });
+    b.addEnemy('cyborg', deck.x0 + 7, { row: b.gy - 4 });
+    b.prop('serverstack', s.x0 + 14);
+    s.enemy('sentinel', 12);
+    s.capsule('B', 8, b.rowAbove(8));
+    s.medalsAbove(14, 3, 2, 2);
+    b.slope(-3, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('cyberhound', 3);
+    s.enemy('cyborg', 7);
 
     // --- 5. The second gravity hall, longer ---
     s = b.flat(12);

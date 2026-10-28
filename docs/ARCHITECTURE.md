@@ -318,6 +318,13 @@ column (the LO cell sits under the HI cell).
   inside its rows) and jumps when pressed against a steep face.
 - `ascii.js` draws them in tests: `/` and `\` are 45 degrees, `1 2` / `4 3` the 22-degree pairs, `5 6` / `7 8` the steep ones.
 
+Every one of the twenty levels uses them, laid out by biome (see the level headers). The pattern the redesigns share: the ground never
+sinks below the builder's base row (13 in a 17-row level, one tile of room under it), so a hollow is made by raising a dune first;
+a flat-only zone is bracketed by flat ground with the slopes outside it; rows for platforms, fliers and capsules on raised ground come
+from `b.gy - n` and `b.rowAbove(n)`; a level's medal, capsule, enemy and checkpoint counts stay as they were (the economy test).
+Per-era tests in `tests/integration/` (`pilot_levels`, `ancient_levels`, `medieval_levels`, `industrial_levels`, `modern_levels`) check that
+each level has the slopes its brief promised and that every zone needing level ground still has it.
+
 ## Levels
 
 Levels are short scripts for `LevelBuilder` (`levelgen.js`), not hand-drawn grids:

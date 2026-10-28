@@ -183,7 +183,10 @@ test('beating an echo frees the camera and moves on to the next arena, without c
 });
 
 test('the whole boss rush can be fought through: three echoes, then the Warlord, then the level is clear', () => {
-  const r = fightBoss(lvl(), { arena: 0, rush: true, seconds: 600, weapon: 'plasma' });
+  // each fight needs the stance that suits it: the echo of the Colossus is shot from underneath (a default 'ground' bot clears it only
+  // by the luck of the seed)
+  const style = { trex: 'ground', colossus: 'under', supertank: 'ground', warlord: 'ground' };
+  const r = fightBoss(lvl(), { arena: 0, rush: true, seconds: 600, weapon: 'plasma', style });
   assert.ok(r.world.cleared, 'level clear');
   assert.deepEqual(r.defeats.map((d) => d.id), ['echo_trex', 'echo_colossus', 'echo_supertank', 'warlord']);
   assert.deepEqual(r.defeats.map((d) => !!d.echo), [true, true, true, false]);
