@@ -3,6 +3,9 @@
 // (a mark shows each landing spot), and machine-gun bunkers only fire while their slit is open. Fight up the seawall,
 // then take a tank: it hops, carries a splash cannon and soaks four hits, and anything it drives into is crushed. The
 // Super-Heavy Tank waits at the end of the road.
+//
+// The beach has its dunes: 22-degree rises with the mines in them, a shingle bank, a 45-degree climb up the seawall bluff and a scree
+// bank down from it. The shell-barrage beaches, the tank road and the last gun line are level.
 
 import { LevelBuilder } from '../levelgen.js';
 import { T } from '../tiles.js';
@@ -17,23 +20,31 @@ export const coast = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 15 });
 
-    // --- 1. The landing: mines in the sand ---
-    let s = b.flat(44);
+    // --- 1. The landing: mines in the sand dunes ---
+    let s = b.flat(14);
     s.capsule('E', 8, 6);
     b.prop('landing', s.x0 + 5);
-    s.prompt('LANDMINES POP UP WHEN YOU STEP NEAR AND BURST. KEEP MOVING OR SHOOT THEM', 10, 26);
-    s.enemy('mine', 16);
-    s.enemy('garrison', 22);
-    s.enemy('mine', 27);
-    s.enemy('mine', 30);
-    s.enemy('grenadier', 36);
-    b.prop('hedgehog', s.x0 + 13);
-    b.prop('hedgehog', s.x0 + 24);
-    b.prop('sandbags', s.x0 + 22, { n: 3 });
-    s.medals(10, 11, 3, 2);
+    s.prompt('LANDMINES POP UP WHEN YOU STEP NEAR AND BURST. KEEP MOVING OR SHOOT THEM', 4, 26);
+    b.prop('hedgehog', s.x0 + 12);
+    b.slope(2, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('mine', 3);
+    s.medalsAbove(2, 3, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(22);
+    s.enemy('garrison', 4);
+    s.enemy('mine', 9);
+    s.enemy('mine', 12);
+    s.enemy('grenadier', 18);
+    b.prop('hedgehog', s.x0 + 2);
+    b.prop('sandbags', s.x0 + 3, { n: 3 });
     b.pit(3, { fill: 'water' }); // the surf
 
-    // --- 2. The beach: naval gunfire and the first dragon's teeth ---
+    // --- 2. The beach: a shingle bank, then naval gunfire and the first dragon's teeth ---
+    b.flat(4);
+    b.slope(2, { angle: 45 });
+    b.flat(3);
+    b.slope(-2, { angle: 45 });
     s = b.flat(48);
     s.checkpoint(1);
     s.prompt('NAVAL GUNS! A MARK SHOWS WHERE EACH SHELL LANDS. KEEP MOVING', 2, 26);
@@ -54,8 +65,8 @@ export const coast = {
     b.prop('hedgehog', s.x0 + 38);
     b.pit(3, { fill: 'spikes' }); // barbed wire
 
-    // --- 3. The seawall: bunkers and the first anti-tank gun ---
-    b.up(3);
+    // --- 3. The seawall: a 45-degree climb up the bluff, bunkers and the first anti-tank gun ---
+    b.slope(3, { angle: 45 });
     s = b.flat(40);
     s.checkpoint(1);
     s.prompt('BUNKERS FIRE ONLY WHILE THE SLIT IS OPEN. SHOOT THEM THEN', 3, 24);
@@ -94,7 +105,8 @@ export const coast = {
     s.capsule('B', 18, 4);
     s.medals(20, 5, 4, 2, 2);
     b.prop('wire', s.x0 + 26, { w: 40 });
-    b.down(3);
+    b.slope(-2, { angle: 67 }); // the steep scree bank down from the bluff
+    b.slope(-1, { angle: 45 });
 
     // --- 5. The motor pool: take a tank ---
     s = b.flat(14);

@@ -2,6 +2,9 @@
 // from above or from behind), riveters line the gantries. The floor fights back: conveyor belts carry you with them or
 // against you, steam vents flash and then burst (cross between the bursts), iron presses slam down on a rhythm and a
 // foundry channel of molten metal has to be hopped on iron platforms. The Iron Furnace Engine guards the smelter.
+//
+// The yard outside is built on slag: 22-degree heaps at the gate, then a spoil heap climbed at 45 degrees with a slag slide down its
+// far side. Inside, the belts, vents, presses and the foundry channel stay level.
 
 import { LevelBuilder } from '../levelgen.js';
 import { T } from '../tiles.js';
@@ -21,35 +24,44 @@ export const factory = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 13 });
 
-    // --- 1. The factory gate ---
-    let s = b.flat(36);
+    // --- 1. The factory gate, past the first slag heap ---
+    let s = b.flat(12);
     s.capsule('E', 6, 6);
     s.prompt('WORKERS SWING THEIR WRENCHES. SHOOT THEM BEFORE THEY CLOSE IN', 2, 22);
-    s.enemy('worker', 14);
-    s.enemy('worker', 22);
-    s.enemy('riveter', 30);
-    s.medals(8, 11, 3, 2);
-    b.prop('gear', s.x0 + 12, { r: 20, h: 70 });
-    b.prop('pipes', s.x0 + 26);
+    b.prop('gear', s.x0 + 10, { r: 20, h: 70 });
+    b.slope(2, { angle: 22 });
+    s = b.flat(8);
+    s.enemy('worker', 3);
+    s.medalsAbove(1, 3, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(14);
+    s.enemy('worker', 4);
+    s.enemy('riveter', 10);
+    b.prop('pipes', s.x0 + 6);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 2. The foremen's hall ---
-    s = b.flat(40);
+    // --- 2. The foremen's hall: over the spoil heap, a gantry on top, and a slag slide down the far side ---
+    s = b.flat(10);
     s.checkpoint(1);
     s.prompt('FOREMEN HIDE BEHIND A STEEL APRON. SHOOT FROM ABOVE OR GET BEHIND THEM', 1, 24);
-    s.enemy('worker', 8);
-    s.enemy('foreman', 14);
-    const gantry = b.platform(s.x0 + 20, 10, 8);
-    b.addEnemy('riveter', gantry.x0 + 3, { row: 10 });
-    b.addEnemy('riveter', gantry.x0 + 6, { row: 10 });
-    s.enemy('foreman', 32);
-    s.enemy('drone', 26, { row: 6 });
-    s.capsule('S', 14, 6);
-    s.medals(21, 8, 4, 2);
-    b.prop('pipes', s.x0 + 4);
-    b.prop('gear', s.x0 + 30, { r: 24, h: 76, dir: -1 });
+    s.enemy('worker', 4);
+    b.prop('pipes', s.x0 + 6);
+    b.slope(3, { angle: 45 });
+    s = b.flat(18);
+    s.enemy('foreman', 2);
+    const gantry = b.platform(s.x0 + 6, b.gy - 4, 8);
+    b.addEnemy('riveter', gantry.x0 + 3, { row: b.gy - 4 });
+    b.addEnemy('riveter', gantry.x0 + 6, { row: b.gy - 4 });
+    s.enemy('drone', 14, { row: b.rowAbove(8) });
+    s.capsule('S', 4, b.rowAbove(8));
+    s.medalsAbove(3, 4, 2, 2);
+    b.prop('gear', s.x0 + 15, { r: 24, h: 76, dir: -1 });
+    b.slope(-2, { angle: 67 });
+    b.slope(-1, { angle: 45 });
+    s = b.flat(10);
+    s.enemy('foreman', 6);
     b.pit(4, { fill: 'spikes' });
-    b.platform(b.x - 4, 10, 3);
+    b.platform(b.x - 4, b.gy - 4, 3);
 
     // --- 3. The conveyor hall: belts against you, then with you ---
     s = b.flat(10);

@@ -2,6 +2,9 @@
 // only reach a short way, mortars lobbing shells, and across no man's land the artillery lays down GAS: a mark shows where
 // each shell lands and the cloud lingers for a few seconds, so get out of it or over it. Biplanes strafe and bomb in
 // passing. The War Zeppelin hangs over the last trench.
+//
+// The ground is shell-torn: 22-degree rises behind the wire, crater rims climbed at 45 degrees, and scree where a parapet has
+// collapsed. The gas-barrage fields (a shell needs level ground to land on) and the last trench are level.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -15,18 +18,26 @@ export const trench = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 14 });
 
-    // --- 1. The front line: the first bayonets ---
-    let s = b.flat(36);
+    // --- 1. The front line: the first bayonets, on the shell-torn rise behind the wire ---
+    let s = b.flat(12);
     s.capsule('E', 6, 6);
     s.prompt('BAYONET CHARGES! SHOOT THEM BEFORE THEY GET CLOSE', 2, 22);
-    b.block(s.x0 + 9, 3, 1);
-    s.enemy('bayonet', 16);
-    b.block(s.x0 + 24, 2, 1);
-    s.enemy('infantry', 29);
-    s.medals(8, 11, 3, 2);
+    b.block(s.x0 + 9, 2, 1);
+    b.slope(2, { angle: 22 });
+    s = b.flat(8);
+    s.enemy('bayonet', 4);
+    s.medalsAbove(1, 3, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(14);
+    b.block(s.x0 + 3, 2, 1);
+    s.enemy('infantry', 9);
     b.pit(3, { fill: 'spikes' }); // barbed wire
 
-    // --- 2. No man's land: the first gas shells ---
+    // --- 2. No man's land: a crater rim to cross, then the first gas shells ---
+    b.flat(4);
+    b.slope(2, { angle: 45 });
+    b.flat(3);
+    b.slope(-2, { angle: 45 });
     s = b.flat(46);
     s.checkpoint(1);
     s.prompt('GAS SHELLS! A MARK SHOWS WHERE ONE LANDS. LEAVE THE CLOUD OR JUMP IT', 2, 28);
@@ -40,7 +51,12 @@ export const trench = {
     s.medals(24, 10, 4, 2, 2);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 3. The enemy trench: flamethrowers ---
+    // --- 3. The enemy trench: the parapet has collapsed in a scree slide, then flamethrowers ---
+    b.flat(4);
+    b.slope(2, { angle: 45 });
+    b.flat(3);
+    b.slope(-2, { angle: 67 });
+    b.flat(2);
     b.down(2);
     s = b.flat(34);
     s.checkpoint(1);
@@ -86,19 +102,23 @@ export const trench = {
     b.pit(4, { fill: 'spikes' });
     b.platform(b.x - 4, 10, 3);
 
-    // --- 5. The bunker line ---
-    s = b.flat(42);
+    // --- 5. The bunker line, on a low ridge above the trenches ---
+    s = b.flat(10);
     s.checkpoint(1);
     s.enemy('infantry', 6);
-    s.enemy('bayonet', 10);
-    s.enemy('bayonet', 14);
-    s.enemy('mortar', 18);
-    s.enemy('flamer', 25);
-    s.enemy('infantry', 31);
-    s.enemy('mortar', 36);
-    s.capsule('H', 12, 6);
-    b.block(s.x0 + 21, 2, 1);
-    s.medals(26, 9, 4, 2, 2);
+    b.slope(2, { angle: 22 });
+    s = b.flat(14);
+    s.enemy('bayonet', 3);
+    s.enemy('bayonet', 7);
+    s.enemy('mortar', 11);
+    s.capsule('H', 6, b.rowAbove(7));
+    s.medalsAbove(2, 4, 2, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(18);
+    s.enemy('flamer', 4);
+    s.enemy('infantry', 10);
+    s.enemy('mortar', 15);
+    b.block(s.x0 + 12, 2, 1);
 
     // --- 6. The War Zeppelin ---
     s = b.flat(14);

@@ -503,12 +503,15 @@ test('Coastal Assault: the bot can walk the whole level to the boss gate in a ta
   const w = new World(lvl, { god: true });
   const input = makeInput();
   let frames = 0;
+  let holdJumpUntil = 0;
   const gate = lvl.boss.x0 - 4 * TILE;
   while (w.player.x < gate && frames < seconds(140)) {
-    // run right, hop when something is in the way, always firing
+    // run right, always firing; hop (holding the button for a full-height jump) when a wall or a gap is in the way
     const p = w.player;
     const keys = ['right', 'fire'];
-    if (p.grounded && frames % 50 === 0) keys.push('jump');
+    const groundAhead = w.solidAtPx(p.x + 24, p.y + 2);
+    if (p.grounded && (frames % 50 === 0 || p.hitWall || !groundAhead)) holdJumpUntil = frames + 30;
+    if (frames < holdJumpUntil) keys.push('jump');
     run(w, input, 1, keys);
     frames++;
   }
