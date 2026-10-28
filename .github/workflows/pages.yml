@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+# Publishes the game as a static site. Turn it on once in the repository settings:
+#   Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # never publish a build that fails its tests
+      - run: npm test
+      # the whole game is index.html + style.css + src/ (plain ES modules, no build step)
+      - name: Assemble the site
+        run: |
+          mkdir _site
+          cp index.html style.css _site/
+          cp -r src _site/src
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

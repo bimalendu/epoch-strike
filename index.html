@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Epoch Strike</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" width="480" height="270" aria-label="Epoch Strike game screen"></canvas>
+  </div>
+
+  <!-- On-screen controls, shown on touch devices -->
+  <div id="touch" hidden>
+    <div id="stick" aria-hidden="true"><div id="knob"></div></div>
+    <div id="buttons">
+      <button class="tbtn" data-act="jump" aria-label="Jump">JUMP</button>
+      <button class="tbtn" data-act="fire" aria-label="Fire">FIRE</button>
+      <button class="tbtn small" data-act="switch" aria-label="Switch weapon">SWAP</button>
+      <button class="tbtn small" data-act="bomb" aria-label="Smart bomb">BOMB</button>
+    </div>
+    <button class="tbtn small" id="pausebtn" data-act="pause" aria-label="Pause">II</button>
+  </div>
+
+  <noscript>Epoch Strike needs JavaScript enabled.</noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

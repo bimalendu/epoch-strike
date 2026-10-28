@@ -1,0 +1,22 @@
+{
+  "name": "epoch-strike",
+  "version": "0.1.0",
+  "description": "Epoch Strike - a single-player 2D run-and-gun across 20 eras of Earth. Plain HTML/CSS/JS, zero dependencies.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test",
+    "shots": "node tools/shots.mjs",
+    "levelshots": "node tools/levelshots.mjs",
+    "themeshots": "node tools/themeshots.mjs",
+    "bossshots": "node tools/bossshots.mjs",
+    "musicwav": "node tools/musicwav.mjs",
+    "perf": "node tools/perf.mjs",
+    "economy": "node tools/economy.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
