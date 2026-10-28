@@ -11,7 +11,7 @@ src/game/     the simulation (World) and everything it owns         no DOM acces
 src/game/art/ procedural sprites, tiles, themes, HUD                draws a World, never changes it
 src/scenes/   title, menu, play, results ...                        glue between Game, World and the screen
 tools/        serve, software canvas, PNG encoder, bot, screenshots dev only
-tests/        node:test                                             runs headless through the software canvas
+tests/        node:test: unit / integration / e2e                   runs headless through the software canvas
 ```
 
 The simulation is a fixed 60 Hz step (`DT = 1/60`) at 480x270 logical pixels, 16 px tiles. `World.update(input, dt)`
@@ -336,7 +336,7 @@ spat out by the rifle, machine gun and spread gun.
 cache fill (enemy and boss frame sets, parallax layers, player, effects, HUD, pickups) as a small task and `main.js` runs
 a few milliseconds of them per frame while the title screen is up; nothing depends on it, an unwarmed sprite is painted
 when first drawn. `tools/perfprobe.js` counts canvas calls and canvas creations per frame, `npm run perf` prints them per
-level and boss, and `tests/perf.test.js` pins the budgets (at most 2600 canvas calls in the busiest frame, and after the
+level and boss, and `tests/integration/perf.test.js` pins the budgets (at most 2600 canvas calls in the busiest frame, and after the
 warm-up no canvases created while playing apart from a handful of 16 px tile variants when lava changes a tile's
 neighbours).
 
@@ -349,13 +349,14 @@ player types; `npm run economy` prints it. The useful number is the *break-even 
 about **2.0 deaths a level** (1.9-2.3 depending on how often a boss is beaten flawlessly), so an average player who dies
 twice a level has ~4 lives at Level 13, a skilled one (about one death a level) sits at the cap, and a casual one (3-4
 deaths) lives on Continues. The death rates are assumptions, not measurements: no human playtest has been done, so
-`tests/economy.test.js` pins the structure (five hidden 1UPs, one per era group; 6-25 medals a level; the break-even band)
+`tests/unit/economy.test.js` pins the structure (five hidden 1UPs, one per era group; 6-25 medals a level; the break-even band)
 rather than a guess about players, and a change to a level's medals shows up as a failing test with the new number.
 
 **The shipped site** is `index.html`, `style.css` and `src/` (plain ES modules with relative imports, no packages).
-`tests/release.test.js` follows every import from `src/main.js`, checks nothing leaves `src/` and nothing is bare, boots
+`tests/e2e/release.test.js` follows every import from `src/main.js`, checks nothing leaves `src/` and nothing is bare, boots
 `main.js` against a fake DOM (title -> menu -> play, auto-pause on blur, the F and M hotkeys, the warm-up) and checks the
-README's level table against the game. `.github/workflows/ci.yml` runs `npm test` on every push and pull request;
+README's level table against the game. `.github/workflows/ci.yml` runs `npm run coverage` (the same suite, failing under 98 % lines, 93 % branches or 97 % functions
+of `src/`) on every push and pull request;
 `pages.yml` runs the tests, copies the three paths into `_site` and deploys with the official Pages actions.
 
 ## Visual polish

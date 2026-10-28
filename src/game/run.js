@@ -122,13 +122,16 @@ export class Run {
     this.score.milestones = o.milestones;
     this.score.combo = 0;
     this.score.lastKill = -Infinity;
-    this.lives.lives = o.lives;
+    this.lives.lives = Math.max(0, Math.min(o.lives, this.lives.max)); // never above the cap, never negative
     this.lives.medals = o.medals;
     this.continuesLeft = o.continuesLeft;
     this.continuesUsed = o.continuesUsed;
     this.totalDeaths = o.deaths;
     this.totalTime = o.time || 0;
-    this.loadout = { slots: [...o.loadout.slots], slot: o.loadout.slot, bombs: o.loadout.bombs };
+    // same normalising as Player.applyLoadout: slot 0 defaults to the rifle, the active slot must hold a weapon
+    const slots = [o.loadout.slots[0] || 'rifle', o.loadout.slots[1] || null];
+    const bombs = Number.isFinite(o.loadout.bombs) ? Math.max(0, Math.min(o.loadout.bombs, PICKUP_RULES.MAX_BOMBS)) : PICKUP_RULES.START_BOMBS;
+    this.loadout = { slots, slot: slots[o.loadout.slot] ? o.loadout.slot : 0, bombs };
     this.checkpoint = null;
   }
 }

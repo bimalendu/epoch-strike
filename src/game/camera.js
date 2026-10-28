@@ -52,8 +52,8 @@ export class Camera {
     if (this.shakeT > 0) {
       this.shakeT -= dt;
       const m = this.shakeMag * Math.min(1, this.shakeT * 4);
-      this.ox = Math.round((Math.random() * 2 - 1) * m);
-      this.oy = Math.round((Math.random() * 2 - 1) * m);
+      this.ox = Math.round((world.fxRand() * 2 - 1) * m);
+      this.oy = Math.round((world.fxRand() * 2 - 1) * m);
     } else {
       this.ox = this.oy = 0;
     }

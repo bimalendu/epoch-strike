@@ -103,6 +103,7 @@ export class LevelBuilder {
     this.def = def;
     this.rows = rows;
     this.gy = gy; // current ground surface row
+    this.laidGy = gy; // surface row of the last ground laid, so steps up that follow each other add up
     this.x = 0; // cursor column
     this.columns = []; // columns[x] = Uint8Array(rows)
     this.surface = []; // surface[x] = row of the top walkable tile, or -1 for a pit
@@ -158,13 +159,16 @@ export class LevelBuilder {
       if (top !== null) this.set(x, this.gy, top);
       this.surface[x] = this.gy;
     }
+    this.laidGy = this.gy;
     this.x += n;
     return new Seg(this, x0, this.x);
   }
 
   /** Step the ground up by `dh` tiles (at most MAX_STEP_UP_TILES). */
   up(dh) {
-    if (dh > MAX_STEP_UP_TILES) throw new Error(`step up of ${dh} tiles is more than the player can climb`);
+    // the rise counts from the last ground laid, so up(3) straight after up(3) is a 6-tile cliff and is refused
+    const rise = this.laidGy - (this.gy - dh);
+    if (dh > MAX_STEP_UP_TILES || rise > MAX_STEP_UP_TILES) throw new Error(`step up of ${Math.max(dh, rise)} tiles is more than the player can climb`);
     this.gy -= dh;
     return this;
   }

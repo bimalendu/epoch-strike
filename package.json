@@ -8,15 +8,27 @@
   "scripts": {
     "start": "node tools/serve.mjs",
     "test": "node --test",
+    "test:unit": "node --test \"tests/unit/**/*.test.js\"",
+    "test:integration": "node --test \"tests/integration/**/*.test.js\"",
+    "test:e2e": "node --test \"tests/e2e/**/*.test.js\"",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-lines=98 --test-coverage-branches=93 --test-coverage-functions=97 \"tests/**/*.test.js\"",
+    "e2e": "playwright test",
+    "e2e:update": "playwright test --update-snapshots",
     "shots": "node tools/shots.mjs",
+    "parity": "node tools/parity.mjs",
     "levelshots": "node tools/levelshots.mjs",
     "themeshots": "node tools/themeshots.mjs",
     "bossshots": "node tools/bossshots.mjs",
     "musicwav": "node tools/musicwav.mjs",
     "perf": "node tools/perf.mjs",
-    "economy": "node tools/economy.mjs"
+    "economy": "node tools/economy.mjs",
+    "mutate": "stryker run"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@stryker-mutator/core": "10.1.1"
   }
 }

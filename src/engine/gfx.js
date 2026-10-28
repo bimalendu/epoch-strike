@@ -93,15 +93,6 @@ export class Painter {
     }
     return this;
   }
-
-  /** 1px outline rectangle. */
-  frame(x, y, w, h, color) {
-    this.rect(x, y, w, 1, color);
-    this.rect(x, y + h - 1, w, 1, color);
-    this.rect(x, y, 1, h, color);
-    this.rect(x + w - 1, y, 1, h, color);
-    return this;
-  }
 }
 
 /** Draw a thick pixel line directly onto a context (used for aimed weapon barrels, beams). */

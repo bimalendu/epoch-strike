@@ -13,7 +13,7 @@ export function makeSwing(s, index = 0) {
     ay: s.ay,
     len: s.len,
     theta: s.theta,
-    omega: (Math.PI * 2) / s.period,
+    omega: s.period > 0 ? (Math.PI * 2) / s.period : 0, // a zero period hangs still instead of producing NaN
     phase: s.phase || 0,
     w: s.w,
     h: PLANK_H,
@@ -40,6 +40,7 @@ function place(pl) {
 
 /** Advance a swing by dt. Returns the plank's movement { dx, dy } so riders can be carried. */
 export function stepSwing(pl, dt) {
+  if (!(dt > 0)) return { dx: 0, dy: 0 }; // no time passed: no movement, and no 0/0 in the velocity
   const ox = pl.x;
   const oy = pl.y;
   pl.t += dt;

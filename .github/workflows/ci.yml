@@ -6,6 +6,7 @@ on:
   pull_request:
 
 jobs:
+  # the game itself has no dependencies, so the unit, integration and headless end-to-end tests need nothing installed
   test:
     runs-on: ubuntu-latest
     steps:
@@ -13,5 +14,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # the game has no dependencies, so there is nothing to install
-      - run: npm test
+      # one run both tests and enforces the coverage floor on src/ (Node >= 22.8 for the thresholds)
+      - run: npm run coverage
+
+  # real browsers (Playwright is a dev-only dependency; it never reaches the shipped site)
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

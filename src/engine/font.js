@@ -70,7 +70,7 @@ export const GLYPH_H = 7;
 export const ADVANCE = 6;
 
 export function textWidth(text, scale = 1) {
-  const n = String(text).length;
+  const n = String(text).toUpperCase().length; // measured as drawText draws it (upper-casing can change the length)
   return n === 0 ? 0 : (n * ADVANCE - 1) * scale;
 }
 

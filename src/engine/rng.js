@@ -12,12 +12,16 @@ export function rng(seed = 1) {
   next.int = (lo, hi) => lo + Math.floor(next() * (hi - lo + 1));
   next.range = (lo, hi) => lo + next() * (hi - lo);
   next.chance = (p) => next() < p;
-  next.pick = (arr) => arr[Math.floor(next() * arr.length)];
+  next.pick = (arr) => {
+    if (!arr || arr.length === 0) throw new Error('rng.pick: cannot pick from an empty list');
+    return arr[Math.floor(next() * arr.length)];
+  };
   next.sign = () => (next() < 0.5 ? -1 : 1);
   next.weighted = (table) => {
     // table: { key: weight }
     let total = 0;
     for (const k in table) total += table[k];
+    if (!(total > 0)) throw new Error('rng.weighted: the table needs at least one positive weight');
     let r = next() * total;
     for (const k in table) {
       r -= table[k];

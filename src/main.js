@@ -31,9 +31,11 @@ input.onHotkey = (name) => {
     game.toggleMute();
   } else if (name === 'fullscreen') {
     const root = document.documentElement;
+    // a refused request REJECTS its promise (a sync throw is only the old-browser case), so both need a .catch;
+    // Promise.resolve also copes with browsers that return nothing
     try {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else if (root.requestFullscreen) root.requestFullscreen({ navigationUI: 'hide' });
+      if (document.fullscreenElement) Promise.resolve(document.exitFullscreen()).catch(() => {});
+      else if (root.requestFullscreen) Promise.resolve(root.requestFullscreen({ navigationUI: 'hide' })).catch(() => {});
     } catch (err) {
       // fullscreen refused (iframe, permissions): the game just stays windowed
     }
