@@ -168,11 +168,6 @@ const PLATFORMS = {
     p.rect(0, 0, 16, 1, s.light || shade(s.base, 0.35));
     for (let x = 1; x < 16; x += 3) p.rect(x, 2, 2, 2, s.dark);
   },
-  vine(p, s) {
-    p.rect(0, 1, 16, 3, s.base);
-    p.rect(0, 0, 16, 1, s.light || shade(s.base, 0.3));
-    for (let x = 0; x < 16; x += 4) p.rect(x, 4, 1, 2, s.dark);
-  },
   neon(p, s) {
     p.rect(0, 1, 16, 3, s.base);
     p.rect(0, 0, 16, 1, s.glow);
@@ -340,8 +335,4 @@ export function tileSprite(theme, id, mask, variant, T, band = 0) {
   c = p.canvas;
   cache.set(key, c);
   return c;
-}
-
-export function clearTileCache() {
-  cache.clear();
 }

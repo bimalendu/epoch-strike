@@ -3,7 +3,7 @@
 
 import { lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
-import { TILE, VIEW_W } from '../constants.js';
+import { VIEW_W } from '../constants.js';
 import { PROPS_W13 } from './props_w13.js';
 
 function mast(ctx, p, x, y, t) {
@@ -387,5 +387,3 @@ export function drawProps(ctx, world, ox, oy) {
     if (fn) fn(ctx, p, Math.round(p.x - ox), Math.round(p.y - oy), world.time || 0);
   }
 }
-
-export const PROP_TILE = TILE;

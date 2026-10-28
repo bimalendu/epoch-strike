@@ -46,19 +46,9 @@ export class Seg {
     return this.x1 - this.x0;
   }
 
-  col(dx) {
-    return this.x0 + dx;
-  }
-
   /** Enemy standing on the ground (or at an explicit tile row for fliers and platform dwellers). */
   enemy(type, dx, opts = {}) {
     this.b.addEnemy(type, this.x0 + dx, opts);
-    return this;
-  }
-
-  /** `n` enemies spaced `gap` tiles apart. */
-  enemies(type, dx, n, gap, opts = {}) {
-    for (let i = 0; i < n; i++) this.b.addEnemy(type, this.x0 + dx + i * gap, opts);
     return this;
   }
 

@@ -650,7 +650,3 @@ export const TRACKS = {
   },
   // <<TRACKS>> (registry: new tracks are added above this line)
 };
-
-export function trackById(id) {
-  return TRACKS[id] || null;
-}

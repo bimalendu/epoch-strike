@@ -67,18 +67,10 @@ function humanoidFrame(def, frame) {
       p.rect(18, 1 + bob, 1, 3, '#f2ecd8');
       p.rect(19, 0 + bob, 1, 2, '#f2ecd8');
       break;
-    case 'hood':
-      p.ellipse(13, 6 + bob, 5, 5, hat);
-      p.rect(14, 5 + bob, 4, 4, skin);
-      p.px(16, 6 + bob, '#111111');
-      break;
     case 'crest':
       p.ellipse(13, 4 + bob, 5, 3, hat);
       p.rect(8, 5 + bob, 11, 1, hat);
       p.rect(9, 0 + bob, 8, 2, '#c0262e');
-      break;
-    case 'none':
-      p.rect(9, 2 + bob, 9, 2, shade(skin, -0.55));
       break;
     case 'greathelm': // a knight's full helm: visor slit, a red plume, a gorget under the chin
       p.rect(9, 1 + bob, 10, 9, hat);

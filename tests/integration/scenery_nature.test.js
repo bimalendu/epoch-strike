@@ -188,6 +188,6 @@ test('every theme paints a sun, a moon, an aurora or some clouds in its sky, and
   for (const [name, theme] of Object.entries(THEMES)) {
     if (name === 'cave') continue; // underground
     const kinds = theme.layers.map((l) => l.k);
-    assert.ok(kinds.some((k) => ['celestial', 'cumulus', 'stratus', 'cirrus', 'clouds', 'aurora', 'stars'].includes(k)), `${name}: ${kinds.join()}`);
+    assert.ok(kinds.some((k) => ['celestial', 'cumulus', 'stratus', 'cirrus', 'aurora', 'stars'].includes(k)), `${name}: ${kinds.join()}`);
   }
 });

@@ -20,73 +20,8 @@ function columns(p, o, heightAt, color, cap) {
 }
 
 const PAINTERS = {
-  mountains(p, o) {
-    const n = wrapNoise(o.seed, o.cells || 5, 3);
-    columns(p, o, (x) => n[x] * o.a, o.c, o.cap ? { c: o.cap, at: 0.62, h: 4 } : null);
-    if (o.shade) {
-      for (let x = 0; x < W; x++) {
-        const top = Math.round(o.y - n[x] * o.a);
-        if (n[(x + 3) % W] < n[x]) p.rect(x, top + 2, 1, 7, shade(o.c, -0.07));
-      }
-    }
-  },
-
-  hills(p, o) {
-    const n = wrapNoise(o.seed, o.cells || 4, 1);
-    columns(p, o, (x) => n[x] * o.a, o.c, null);
-  },
-
   dunes(p, o) {
     columns(p, o, (x) => (Math.sin((x / W) * Math.PI * 2 * (o.cells || 3) + o.seed) * 0.5 + 0.5) * o.a, o.c, null);
-  },
-
-  // canopy trees: trunk + blobs (palm = fronds)
-  trees(p, o) {
-    const r = rng(o.seed);
-    const n = o.n || 14;
-    p.rect(0, o.y, W, H - o.y, o.c);
-    for (let i = 0; i < n; i++) {
-      const x = Math.floor(((i + r() * 0.6) / n) * W);
-      const th = Math.floor(o.a * (0.55 + r() * 0.45));
-      const base = o.y + 4;
-      const rad = 10 + Math.floor(r() * 7);
-      placeWrapped((px) => {
-        p.rect(px - 2, base - th, 4, th, shade(o.c, -0.25));
-        if (o.palm) {
-          for (let k = -3; k <= 3; k++) {
-            p.line(px, base - th, px + k * 4, base - th - 2 + Math.abs(k) * 2, o.c, 2);
-            p.rect(px + k * 4 - 1, base - th - 3 + Math.abs(k) * 2, 3, 2, o.c);
-          }
-        } else {
-          p.ellipse(px, base - th - 2, rad, Math.floor(rad * 0.8), o.c);
-          p.ellipse(px - rad / 2, base - th + 3, Math.floor(rad * 0.7), Math.floor(rad * 0.55), o.c);
-          p.ellipse(px + rad / 2, base - th + 3, Math.floor(rad * 0.7), Math.floor(rad * 0.55), o.c);
-          p.ellipse(px - 3, base - th - 5, Math.floor(rad * 0.5), Math.floor(rad * 0.4), shade(o.c, 0.1));
-        }
-      }, x, o.palm ? 16 : rad + 8);
-    }
-  },
-
-  pines(p, o) {
-    const r = rng(o.seed);
-    const n = o.n || 16;
-    p.rect(0, o.y + 6, W, H - o.y, o.c);
-    for (let i = 0; i < n; i++) {
-      const x = Math.floor(((i + r() * 0.5) / n) * W);
-      const th = Math.floor(o.a * (0.6 + r() * 0.4));
-      const base = o.y + 6;
-      placeWrapped((px) => {
-        p.rect(px - 1, base - 4, 2, 4, shade(o.c, -0.3));
-        const tier = Math.max(4, Math.floor(th / 4));
-        for (let t = 0; t < 4; t++) {
-          // lowest tier widest, tapering to the tip
-          const w = 3 + (3 - t) * 3 + Math.floor(th / 12);
-          const yy = base - 5 - (t + 1) * tier + 2;
-          p.rect(px - w, yy, w * 2 + 1, tier + 1, o.c);
-          if (o.snow) p.rect(px - w + 1, yy, w * 2 - 1, 2, o.snow);
-        }
-      }, x, 20);
-    }
   },
 
   pillars(p, o) {
@@ -219,23 +154,6 @@ const PAINTERS = {
     for (let x = 0; x < W; x += 24) p.rect(x, o.y - 10 - (x % 3) * 2, 20, 12, shade(o.c, 0.02));
   },
 
-  clouds(p, o) {
-    const r = rng(o.seed);
-    const n = o.n || 6;
-    p.ctx.globalAlpha = o.alpha ?? 0.85;
-    for (let i = 0; i < n; i++) {
-      const x0 = Math.floor(((i + r() * 0.7) / n) * W);
-      const y = o.y + Math.floor(r() * o.a);
-      const w = 16 + Math.floor(r() * 18);
-      placeWrapped((x) => {
-        p.ellipse(x, y, w, 5, o.c);
-        p.ellipse(x - w / 2, y + 2, Math.floor(w * 0.6), 4, o.c);
-        p.ellipse(x + w / 2, y + 2, Math.floor(w * 0.6), 4, o.c);
-      }, x0, w * 1.3);
-    }
-    p.ctx.globalAlpha = 1;
-  },
-
   stars(p, o) {
     const r = rng(o.seed);
     for (let i = 0; i < (o.n || 60); i++) {
@@ -298,13 +216,6 @@ const PAINTERS = {
     }
   },
 
-  waves(p, o) {
-    p.rect(0, o.y, W, H - o.y, o.c);
-    for (let y = o.y; y < H; y += 6) {
-      for (let x = (y * 7) % 20; x < W; x += 20) p.rect(x, y, 8, 1, shade(o.c, 0.18));
-    }
-  },
-
   // crowd / far wall of an arena
   arena(p, o) {
     p.rect(0, o.y, W, H - o.y, o.c);
@@ -316,11 +227,6 @@ const PAINTERS = {
     }
   },
 
-  mist(p, o) {
-    p.ctx.globalAlpha = o.alpha ?? 0.3;
-    p.rect(0, o.y, W, o.a, o.c);
-    p.ctx.globalAlpha = 1;
-  },
 };
 
 Object.assign(PAINTERS, NATURE);
@@ -328,7 +234,7 @@ Object.assign(PAINTERS, NATURE);
 const cache = new Map();
 
 const HEX = /^#[0-9a-f]{6}$/i;
-const NO_HAZE = new Set(['clouds', 'stars', 'cumulus', 'stratus', 'cirrus', 'celestial', 'rays', 'fogbank', 'aurora']); // lights and weather in the sky do not fade into it
+const NO_HAZE = new Set(['stars', 'cumulus', 'stratus', 'cirrus', 'celestial', 'rays', 'fogbank', 'aurora']); // lights and weather in the sky do not fade into it
 
 /**
  * Atmospheric depth: a far layer (a slow `s`) is mixed toward the sky colour at its horizon, so distance reads as haze.
@@ -364,8 +270,4 @@ export function sceneryLayer(key, layer, theme = null) {
   c = p.canvas;
   cache.set(key, c);
   return c;
-}
-
-export function clearSceneryCache() {
-  cache.clear();
 }

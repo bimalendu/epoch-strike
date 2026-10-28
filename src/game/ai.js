@@ -83,13 +83,6 @@ export function fireBullet(world, e, ox, oy, a, speedMul = 1) {
   world.sfx(bd.sfx || 'enemyShoot');
 }
 
-/** Fire one aimed enemy bullet at the player (optionally fanned by `offset` radians). */
-export function fireAtPlayer(world, e, offset = 0, speedMul = 1) {
-  const ox = e.x + e.face * 8;
-  const oy = e.y - e.h * 0.62;
-  fireBullet(world, e, ox, oy, aimAtPlayer(world, e, ox, oy) + offset, speedMul);
-}
-
 /**
  * The shared "wait, telegraph, fire a burst" state machine used by shooters, heavies and turrets.
  * cfg: { range, tele, fireEvery, burst, fan, spread, gap } ; `muzzle(e)` -> {x, y}; `angle(e, m)` -> radians.

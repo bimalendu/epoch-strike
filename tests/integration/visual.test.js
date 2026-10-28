@@ -217,18 +217,18 @@ test('sky: dithered bands in one drawImage, using only the theme\'s own colours,
 
 test('haze: far scenery fades toward the sky at its horizon, the nearest layer does not', () => {
   const theme = getTheme('jungle');
-  const far = { k: 'hills', c: '#2f7a3c', y: 190, a: 40, s: 0.08, seed: 4 };
-  const near = { k: 'hills', c: '#2f7a3c', y: 190, a: 40, s: 0.5, seed: 4 };
+  const far = { k: 'dunes', c: '#2f7a3c', y: 190, a: 40, s: 0.08, seed: 4 };
+  const near = { k: 'dunes', c: '#2f7a3c', y: 190, a: 40, s: 0.5, seed: 4 };
   const dist = (c1, c2) => {
     const n1 = parseInt(c1.slice(1), 16), n2 = parseInt(c2.slice(1), 16);
     return Math.abs((n1 >> 16) - (n2 >> 16)) + Math.abs(((n1 >> 8) & 255) - ((n2 >> 8) & 255)) + Math.abs((n1 & 255) - (n2 & 255));
   };
-  const probe = (c) => colourAt(c, 240, 262); // inside the hill
+  const probe = (c) => colourAt(c, 240, 262); // inside the landform
   const sky = theme.sky[Math.floor(190 / Math.ceil(270 / theme.sky.length))];
   const plain = sceneryLayer('test:haze:plain', far);
   const farHazed = sceneryLayer('test:haze:far', far, theme);
   assert.equal(probe(plain), '#2f7a3c');
-  assert.ok(dist(probe(farHazed), sky) < dist(probe(plain), sky), 'the far hill is closer to the sky colour');
+  assert.ok(dist(probe(farHazed), sky) < dist(probe(plain), sky), 'the far landform is closer to the sky colour');
   assert.equal(probe(sceneryLayer('test:haze:near', near, theme)), '#2f7a3c', 'a near layer is untouched');
   assert.equal(probe(sceneryLayer('test:haze:off', far, { ...theme, haze: 0 })), '#2f7a3c', 'haze: 0 switches it off');
   assert.equal(mix('#000000', '#ffffff', 0.5), '#808080');
