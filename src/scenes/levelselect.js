@@ -15,16 +15,12 @@ export class LevelSelectScene {
     const { save } = game;
     const n = levelCount();
     const items = [];
-    if (n === 0) {
-      items.push({ label: 'TESTBED', onSelect: () => this.play(-1) });
-    } else {
-      for (let i = 0; i < n; i++) {
-        items.push({
-          label: () => `${String(i + 1).padStart(2, '0')} ${i <= save.unlocked ? levelName(i) : '???'}`,
-          enabled: () => i <= save.unlocked,
-          onSelect: () => this.play(i),
-        });
-      }
+    for (let i = 0; i < n; i++) {
+      items.push({
+        label: () => `${String(i + 1).padStart(2, '0')} ${i <= save.unlocked ? levelName(i) : '???'}`,
+        enabled: () => i <= save.unlocked,
+        onSelect: () => this.play(i),
+      });
     }
     items.push({ label: 'BACK', onSelect: () => game.go('menu') });
     // long lists scroll: show a window of 9 rows

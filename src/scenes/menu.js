@@ -5,7 +5,7 @@ import { drawBackdrop } from '../ui/backdrop.js';
 import { drawText } from '../engine/font.js';
 import { VIEW_W } from '../game/constants.js';
 import { Run } from '../game/run.js';
-import { firstLevel, levelName } from '../game/levels.js';
+import { levelName } from '../game/levels.js';
 
 export class MenuScene {
   constructor(game) {
@@ -35,7 +35,7 @@ export class MenuScene {
   start() {
     const { save } = this.game;
     const run = new Run({ difficulty: save.options.difficulty, hi: save.best });
-    this.game.go('play', { run, levelIndex: firstLevel() });
+    this.game.go('play', { run, levelIndex: 0 });
   }
 
   resume() {

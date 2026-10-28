@@ -696,7 +696,7 @@ export class World {
     return true;
   }
 
-  /** Simple level exit used by the testbed; real levels end at the boss door (Week 6). */
+  /** A plain exit line (`exitX`), used by the test fixture and builder courses; real levels end at the boss door. */
   checkExit() {
     const x = this.level.exitX;
     if (this.cleared || !this.player.alive) return;

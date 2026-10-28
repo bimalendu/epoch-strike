@@ -483,8 +483,7 @@ still comes from `world.fxRand`.
 **HUD and onboarding.** `art/hud.js drawHud(ctx, world, run, extra)` draws; `extra` carries what only the scene knows
 (`prompt`, `card`, `weaponLabel`, `intro`, `trail`), so the art still never changes anything.
 * **Plates**: translucent dark plates (cached in `build()`) behind the lives, score and weapon-slot clusters.
-* **Progress bar** (`game/progress.js levelProgress`, pure): the same goal the solver aims for (`exitX` or the boss trigger; for
-  a tower `exitY` or `boss.triggerY`). Ticks for checkpoints (lit once reached), a skull per boss arena (a boss rush has several)
+* **Progress bar** (`game/progress.js levelProgress`, pure): the same goal the solver aims for (`exitX` or the boss trigger). Ticks for checkpoints (lit once reached), a skull per boss arena (a boss rush has several)
   and one at the end. Hidden during a boss fight and under any prompt, hint or title card.
 * **Title card**: a band that wipes in from the left, holds and wipes out over `CARD_TIME`, with `LEVEL nn`, the name and the era.
 * **Boss entrance**: while a boss is in its `enter` state `PlayScene.introK` eases to 1: letterbox bars and a name plate. The boss

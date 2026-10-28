@@ -1,5 +1,4 @@
-// The level list. Real levels (Week 5 onward) are described as data and built by levelgen.js;
-// the development testbed level stays at index -1 for experiments.
+// The level list. Levels are described as data and built by levelgen.js; index -1 is the gray-box test fixture.
 
 import { levelFromAscii } from './ascii.js';
 import { dinoJungle } from './levels/l01_dino_jungle.js';
@@ -25,7 +24,7 @@ import { citadel } from './levels/l20_citadel.js';
 
 const MARK_ENEMIES = { r: 'grunt', s: 'rifleman' };
 
-/** Gray-box sandbox used by early weeks and by tests. */
+/** The gray-box test fixture (level index -1): pits, a ramp, platforms, hazards, a few enemies and pickups. Not reachable from the menus. */
 export function testLevel() {
   const rows = 17;
   const cols = 120;
@@ -66,7 +65,7 @@ export function testLevel() {
   return lvl;
 }
 
-/** Level definitions: filled in from Week 5. */
+/** Level definitions, in play order. */
 export const LEVEL_DEFS = [
   dinoJungle,
   volcanoRun,
@@ -102,15 +101,10 @@ export function levelName(index) {
   return d && d.name ? d.name : `LEVEL ${index + 1}`;
 }
 
-/** Index a new run begins at: level 1, or the testbed while the real levels are not written yet. */
-export function firstLevel() {
-  return levelCount() > 0 ? 0 : -1;
-}
-
-/** Build the playable level for an index; -1 is the testbed. */
+/** Build the playable level for an index; -1 is the test fixture. */
 export function buildLevel(index) {
   if (index < 0) return testLevel();
   const def = LEVEL_DEFS[index];
   if (!def) throw new Error(`No level ${index}`);
-  return def.build ? def.build(def) : testLevel();
+  return def.build(def);
 }

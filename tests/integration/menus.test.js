@@ -140,7 +140,7 @@ test('level select starts a practice run that never touches the mid-run save', (
   stepN(game, 2);
   assert.ok(game.scene instanceof LevelSelectScene);
   game.render();
-  tap(game, 'confirm'); // first entry: the testbed while no real levels exist
+  tap(game, 'confirm'); // first entry: level 1
   stepN(game, 2);
   assert.ok(game.scene instanceof PlayScene);
   assert.equal(game.scene.run.practice, true);
