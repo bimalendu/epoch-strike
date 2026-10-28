@@ -16,7 +16,7 @@
 
 import { TILE, VIEW_W, STEALTH } from './constants.js';
 import { SOLID, ONEWAY } from './tiles.js';
-import { moveBody } from './physics.js';
+import { moveBody, floorNear } from './physics.js';
 import { spawnEnemy, killEnemy } from './enemies.js';
 import { launchRocket, fuseForRise } from './rocket.js';
 import { smoke, explosion, ring, spark, pushPx } from './fx.js';
@@ -33,9 +33,7 @@ export function groundPhysics(e, world, dt) {
 }
 
 export function floorAhead(world, e, dist = 3) {
-  const fx = e.x + e.face * (e.w / 2 + dist);
-  const t = world.tile(Math.floor(fx / TILE), Math.floor((e.y + 2) / TILE));
-  return SOLID[t] || ONEWAY[t];
+  return floorNear(world, e.x + e.face * (e.w / 2 + dist), e.y);
 }
 
 /** Launch direction (radians) to hit (dx, dy) with a gravity-affected shot of speed v. Falls back to a flat aim. */

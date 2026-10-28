@@ -2,8 +2,8 @@
 // so tests and bots can run it headlessly.
 
 import { DT, TILE, VIEW_W, VIEW_H, DEATH_Y_MARGIN, PLAYER, DIFFICULTY, PICKUP_RULES, enemyCapFor } from './constants.js';
-import { SOLID, ONEWAY, HURT, T } from './tiles.js';
-import { rectHas, overlap } from './physics.js';
+import { SOLID, ONEWAY, HURT, SLOPE, T } from './tiles.js';
+import { rectHas, overlap, solidPoint, floorNear } from './physics.js';
 import { Player } from './player.js';
 import { Camera } from './camera.js';
 import { rng } from '../engine/rng.js';
@@ -30,6 +30,7 @@ export class World {
     this.cols = level.cols;
     this.rows = level.rows;
     this.tiles = level.tiles;
+    this.hasSlopes = level.tiles.some((id) => SLOPE[id]); // physics skips every slope branch on levels without ramps
     this.tilesDirty = false; // tiles changed since the terrain art was baked (see art/tilelayer.js) ...
     this.dirtyTiles = []; // ... and which ones
     this.opts = opts;
@@ -127,8 +128,9 @@ export class World {
     }
   }
 
+  /** Is the point inside solid ground? A slope tile is solid below its line and empty above it. */
   solidAtPx(x, y) {
-    return !!SOLID[this.tile(Math.floor(x / TILE), Math.floor(y / TILE))];
+    return solidPoint(this, x, y);
   }
 
   onScreen(x, y, margin = 0) {
@@ -241,7 +243,7 @@ export class World {
         z.row--;
         for (let x = Math.floor(z.x0 / TILE); x < Math.ceil(z.x1 / TILE); x++) {
           const t = this.tile(x, z.row);
-          if (t === T.AIR || t === T.SOLID || t === T.PLATFORM || t === T.WATER || t === T.ICE) this.setTile(x, z.row, T.LAVA);
+          if (t === T.AIR || t === T.SOLID || t === T.PLATFORM || t === T.WATER || t === T.ICE || SLOPE[t]) this.setTile(x, z.row, T.LAVA);
         }
         this.events.push({ type: 'lavaRise', row: z.row });
       }
@@ -668,9 +670,8 @@ export class World {
     // Remember the last stable ground the player stood on (not a moving platform) for respawning.
     const g = p.groundTile;
     if (p.gdir < 0 || p.mode === 'fly') return; // ceilings and the air are not safe ground
-    if (p.grounded && !p.platform && (SOLID[g] || ONEWAY[g])) {
-      const ahead = this.tile(Math.floor((p.x + p.face * 12) / TILE), Math.floor((p.y + 2) / TILE));
-      if ((SOLID[ahead] || ONEWAY[ahead]) && this.onScreen(p.x, p.y, -10)) {
+    if (p.grounded && !p.platform && (SOLID[g] || ONEWAY[g] || SLOPE[g])) {
+      if (floorNear(this, p.x + p.face * 12, p.y) && this.onScreen(p.x, p.y, -10)) {
         p.safeX = p.x;
         p.safeY = p.y;
       }

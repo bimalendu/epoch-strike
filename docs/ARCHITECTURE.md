@@ -287,6 +287,24 @@ flashes for `tele` seconds (never under 0.6), then a column of ghost `beam` bull
 strip. The solver and the bot use `goalY` for them, and stragglers left far below the climb are despawned so they
 cannot crowd the screen.
 
+## Slopes
+
+Ten tile ids (`T.RAMP45_*`, `T.RAMP22_*_LO/HI`, `T.STEEP_*_LO/HI`) are walkable ground whose surface is a line across the
+cell. The suffix names the side that rises. The angles are nominal: the geometry is 1:2, 1:1 and 2:1, because that is what a
+16 px grid can express. A 22-degree ramp climbs one tile over two cells (LO, HI); a steep slope climbs two tiles over one
+column (the LO cell sits under the HI cell).
+
+- `tiles.js`: `SLOPE` and `STEEP` tables (slopes are deliberately **not** in `SOLID`, so the X sweep never treats them as walls),
+  `floorHeight(id, localX)` (surface height above the cell bottom, 0..16, `-1` for a non-slope) and `uphillDir(id)`.
+- `physics.js`: `surfaceAt(world, px, py)` returns the surface under a pixel column; `solidPoint` and `rectSolid` test a slope
+  against its line (bullets pass through the empty triangle above a ramp); `floorNear` is the slope-aware "is there footing
+  ahead" probe the walkers use. `moveBody` does four extra things, **all gated on `world.hasSlopes`** so a level without ramps
+  simulates exactly as before: it walks up the lip where a slope meets level ground (a wall that is no taller than
+  `SLOPE_STEP`, or half the body's width plus 2 for a wide tank), lifts the feet onto the surface after the X move, follows the
+  ground down so a walker stays grounded on a descent, and slides a grounded body down a steep slope at `STEEP_SLIDE`.
+  Walking into a steep slope uphill is a wall (the soldier has to jump it). The hoverbike ignores slopes.
+- `ascii.js` draws them in tests: `/` and `\` are 45 degrees, `1 2` / `4 3` the 22-degree pairs, `5 6` / `7 8` the steep ones.
+
 ## Levels
 
 Levels are short scripts for `LevelBuilder` (`levelgen.js`), not hand-drawn grids:

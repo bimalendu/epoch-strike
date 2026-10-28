@@ -32,6 +32,7 @@ export class Enemy {
     this.flash = 0;
     this.grounded = false;
     this.hitWall = 0;
+    this.onSlope = 0; // id of the slope tile under the feet (set by moveBody)
     this.jumpCd = 0;
     this.aimX = this.face;
     this.aimY = 0;

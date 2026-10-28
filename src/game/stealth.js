@@ -8,7 +8,7 @@
 // walks right up to them: a quiet soldier gets past them for free.
 
 import { TILE, VIEW_W, STEALTH } from './constants.js';
-import { SOLID } from './tiles.js';
+import { solidPoint } from './physics.js';
 import { popup } from './fx.js';
 import { spawnEnemy } from './enemies.js';
 import { groundPhysics } from './ai.js';
@@ -28,7 +28,7 @@ export function clearLine(world, x0, y0, x1, y1) {
   for (let i = 1; i < n; i++) {
     const x = x0 + (dx * i) / n;
     const y = y0 + (dy * i) / n;
-    if (SOLID[world.tile(Math.floor(x / TILE), Math.floor(y / TILE))]) return false;
+    if (solidPoint(world, x, y)) return false;
   }
   return true;
 }

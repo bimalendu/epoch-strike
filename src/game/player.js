@@ -35,6 +35,7 @@ export class Player {
     this.wallCoyote = 0;
     this.kickT = 0; // seconds left of a wall kick's fixed heading
     this.groundTile = 0;
+    this.onSlope = 0; // id of the slope tile under the feet (set by moveBody), 0 when standing on level ground or in the air
     this.mode = 'foot'; // 'foot' | 'fly' | 'tank'
     this.tankHp = 0; // hits the tank can still take (mode 'tank')
     this.tankRoad = null; // the tank road zone this tank belongs to (it is left behind at the end of the road)
@@ -344,7 +345,7 @@ export class Player {
     this.hitWall = this.hitWall || 0;
     if (this.grounded) {
       const below = gdir > 0 ? Math.floor((this.y + 0.5) / TILE) : Math.floor((this.y - this.h - 0.5) / TILE);
-      this.groundTile = world.tile(Math.floor(this.x / TILE), below);
+      this.groundTile = this.onSlope || world.tile(Math.floor(this.x / TILE), below);
       this.jumping = false;
     } else {
       this.groundTile = 0;
