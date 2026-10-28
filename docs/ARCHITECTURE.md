@@ -34,6 +34,7 @@ Every extensible list ends in a sentinel comment so new entries slot in without 
 | player weapon          | `weapons.js`                          | `<<WEAPONS>>`     |
 | music track            | `src/game/tracks.js`                  | `<<TRACKS>>`      |
 | player bullet look     | `art/bullets.js`                      | `<<BULLET_ART>>`  |
+| player gun sprite      | `art/guns.js`                         | `<<GUN_ART>>`     |
 | theme                  | `art/themes.js`                       | (object key)      |
 
 ## Enemies
@@ -421,6 +422,50 @@ still comes from `world.fxRand`.
 * **CRT FILTER: OFF / SCANLINES** (`crt`). A CSS overlay (`body.crt #stage::after` in `style.css`), never drawn on the canvas, so
   screenshots and tests are unchanged. `Game.applyDisplay()` calls `game.onDisplay(options)`, which `main.js` uses to toggle the
   class; `fit()` sets `--crt-px` and `--crt-top` so a dark line sits at the bottom of every game pixel row.
+
+## Sprites
+
+The second art pass: the actors (player, pickups, enemies, bosses) got outlines, shading and animation at the same sprite
+sizes and hitboxes. Art only: nothing here reads or writes the simulation, and everything is still `fillRect` and `drawImage`.
+
+**Baking** (`art/bake.js`). Painters draw flat rectangles; `bake(img)` is a pixel pass run once per cached frame (never during
+play) that adds an outline (every transparent pixel touching the sprite becomes the neighbour's colour darkened toward ink) and
+top-left light (an edge facing up lightens, an edge facing down or right darkens). The result is `PAD` (1 px) bigger on the left,
+top and right, but **not** at the bottom, so feet stay on the floor row. `bakeFrames(f)` bakes every image in an enemy frame set
+(`idle`, `run[]`, `hot` and extras such as the elephant's `rear`), keeps shared frames shared and moves the anchors: `ox + PAD`,
+`h + PAD`, `w + 2 * PAD`. Blits go through `x - f.ox, y - f.h`, so nothing moves. `enemyFrames(def)` bakes whatever `build(def)`
+returns, so **a new painter's cached frames are baked automatically**; do not bake them yourself. `turned(img)` (also in
+`bake.js`) is the quarter-turn used by the death animation.
+
+**Player** (`art/player.js`). Same 24x32 box. Two idle frames (breathing, picked from `world.time`), six run frames
+(indexed by `pl.anim`), eight somersault frames, prone, and four tumble frames for the `corpse` fx. The arm and the gun are
+drawn live along `pl.aimVec()` from `pl.shoulder()`. **Guns** (`art/guns.js`) are one sprite per weapon at five angles (-90, -45, 0,
+45, 90 degrees), mirrored by `blit` for the other three of the 8-way aim; `GUN_ART` lists a gun as segments along the barrel and
+ends in `<<GUN_ART>>`. An id without art draws the rifle. Recoil is derived from `pl.fireT` against the weapon's cooldown: for
+the first 50 ms after a shot the gun is drawn 1 px back.
+
+**Pickups** (`art/pickups.js`). Badges stay 15x15 because the HUD slots draw them. Each has a bevelled face and, for the era (E)
+weapons, a small icon of its own along the bottom (`ERA_ICONS`). `drawPickup` plays a 6-frame glint sweep every 1.6 s (staggered
+by x) with a twinkle, a 4-frame turning medal and a 2-frame beating heart. `warmPickups` builds every frame.
+
+**Enemies** (`art/enemies.js`). The humanoid template has a back arm, shading, eye whites and a `hot` frame (bright, used for the
+telegraph flicker like the other enemies' hot frames). Armed humanoids (`gun`, `sword`, `axe`, `bow`, `crossbow`, `thrower`) get a
+live front arm (`holdArm`) and every thick weapon line goes through `olLine`, a line with a dark under-stroke. A gunner's gun
+kicks back 1 px for a few frames after its telegraph ends (art-side memory in a `WeakMap`; the AI state goes straight back to idle).
+**Death animation:** `killEnemy` pushes one `fall` fx (`fx.fall`: only for bodies, skipped for silent kills, turrets, mines,
+bosses, hidden and ceiling enemies). It goes straight into `world.fx` like `corpse`, so effects quality cannot change the
+simulation. `art/fx.js` draws the enemy's own idle frame white for 0.1 s, then tipped onto its back (`turned`, cropped to the
+visible pixels, built by `warmFall` at warm-up), and blinks it out. Painters with a custom `draw` have no sprite to tip and show nothing.
+
+**Bosses** (`art/bosses*.js`, `art/bossfx.js`). Bosses are still drawn live in boss-local coordinates, so they cannot be baked.
+The brush has three more helpers: `B.part(x, y, w, h, col)` (outline, fill, lit top, shaded bottom: 4 calls) for masses,
+`B.slab` (no outline) for inner panels and `B.stroke` for lines with an under-stroke. `bossfx.js` has the rest, all pure functions
+of the pose and `e.bs.age`: `weakPoint` (bevelled housing; when open it pulses through `flick` in the boss's own colour and shows a
+ring while the boss is hit, when closed it shows shutter slats; it is drawn at the rect `weakBox` uses, so the hitbox is unchanged),
+`damageMarks` (cracks, missing plates, scorches, smoke and sparks that appear from phase 1 or 2), `breathe` and `blink` (idle life)
+and `collapse` (the dying pose: sinks, chars toward black, and named parts fly off). While a boss is `dying`, `boss.js` also throws
+scrap and smoke from `world.fxRand`. It must never call `world.rand` there: Level 20's echo rush continues after an echo dies.
+Every boss's busiest frame must stay at or below 2300 canvas calls (`npm run perf`).
 
 ## Dev tools
 

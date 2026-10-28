@@ -50,6 +50,7 @@ Every extensible list ends in a sentinel comment. Add new entries at the sentine
 | level | `src/game/levels/lNN_*.js` + `levels.js` | `<<LEVEL_DEFS>>` |
 | enemy (data / behaviour / sprite) | `enemy_defs.js` / `ai.js` / `art/enemies.js` (painters may live in `art/creatures.js` etc.) | `<<ENEMY_DEFS>>` / `<<ARCH>>` / `<<PAINTERS>>` |
 | enemy or player bullet look | `art/ebullets.js` / `art/bullets.js` | `<<EBULLET_ART>>` / `<<BULLET_ART>>` |
+| player weapon's gun sprite | `art/guns.js` | `<<GUN_ART>>` |
 | boss | `bosses/<name>.js`, `bosses.js`, `art/bosses.js` (+ `art/bosses_wNN.js`) | `<<BOSS_IMPORTS>>`, `<<BOSSES>>`, `<<BOSS_PAINTERS>>` |
 | player weapon | `weapons.js` | `<<WEAPONS>>` |
 | music track | `tracks.js` | `<<TRACKS>>` |
