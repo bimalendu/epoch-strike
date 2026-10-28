@@ -5,30 +5,11 @@ import { Painter } from '../../engine/gfx.js';
 import { rng, hash2 } from '../../engine/rng.js';
 import { VIEW_W, VIEW_H } from '../constants.js';
 import { shade, mix } from './common.js';
+import { wrapNoise } from './noise.js';
+import { NATURE, placeWrapped } from './scenery_nature.js';
 
 const W = VIEW_W;
 const H = VIEW_H;
-
-/** Smooth noise array of length W that wraps around, values in 0..1. */
-function wrapNoise(seed, cells, octaves = 2) {
-  const out = new Float32Array(W);
-  for (let o = 0; o < octaves; o++) {
-    const n = cells * (1 << o);
-    const pts = [];
-    for (let i = 0; i < n; i++) pts.push(hash2(i, o, seed));
-    const amp = 1 / (1 << o);
-    for (let x = 0; x < W; x++) {
-      const f = (x / W) * n;
-      const i = Math.floor(f);
-      const t = f - i;
-      const s = t * t * (3 - 2 * t);
-      out[x] += (pts[i % n] * (1 - s) + pts[(i + 1) % n] * s) * amp;
-    }
-  }
-  const norm = 2 - 1 / (1 << (octaves - 1));
-  for (let x = 0; x < W; x++) out[x] /= norm;
-  return out;
-}
 
 function columns(p, o, heightAt, color, cap) {
   for (let x = 0; x < W; x++) {
@@ -68,21 +49,21 @@ const PAINTERS = {
       const x = Math.floor(((i + r() * 0.6) / n) * W);
       const th = Math.floor(o.a * (0.55 + r() * 0.45));
       const base = o.y + 4;
-      p.rect(x - 2, base - th, 4, th, shade(o.c, -0.25));
-      if (o.palm) {
-        for (let k = -3; k <= 3; k++) {
-          const len = 14 - Math.abs(k) * 2;
-          p.line(x, base - th, x + k * 4, base - th - 2 + Math.abs(k) * 2, o.c, 2);
-          p.rect(x + k * 4 - 1, base - th - 3 + Math.abs(k) * 2, 3, 2, o.c);
-          void len;
+      const rad = 10 + Math.floor(r() * 7);
+      placeWrapped((px) => {
+        p.rect(px - 2, base - th, 4, th, shade(o.c, -0.25));
+        if (o.palm) {
+          for (let k = -3; k <= 3; k++) {
+            p.line(px, base - th, px + k * 4, base - th - 2 + Math.abs(k) * 2, o.c, 2);
+            p.rect(px + k * 4 - 1, base - th - 3 + Math.abs(k) * 2, 3, 2, o.c);
+          }
+        } else {
+          p.ellipse(px, base - th - 2, rad, Math.floor(rad * 0.8), o.c);
+          p.ellipse(px - rad / 2, base - th + 3, Math.floor(rad * 0.7), Math.floor(rad * 0.55), o.c);
+          p.ellipse(px + rad / 2, base - th + 3, Math.floor(rad * 0.7), Math.floor(rad * 0.55), o.c);
+          p.ellipse(px - 3, base - th - 5, Math.floor(rad * 0.5), Math.floor(rad * 0.4), shade(o.c, 0.1));
         }
-      } else {
-        const rad = 10 + Math.floor(r() * 7);
-        p.ellipse(x, base - th - 2, rad, Math.floor(rad * 0.8), o.c);
-        p.ellipse(x - rad / 2, base - th + 3, Math.floor(rad * 0.7), Math.floor(rad * 0.55), o.c);
-        p.ellipse(x + rad / 2, base - th + 3, Math.floor(rad * 0.7), Math.floor(rad * 0.55), o.c);
-        p.ellipse(x - 3, base - th - 5, Math.floor(rad * 0.5), Math.floor(rad * 0.4), shade(o.c, 0.1));
-      }
+      }, x, o.palm ? 16 : rad + 8);
     }
   },
 
@@ -94,15 +75,17 @@ const PAINTERS = {
       const x = Math.floor(((i + r() * 0.5) / n) * W);
       const th = Math.floor(o.a * (0.6 + r() * 0.4));
       const base = o.y + 6;
-      p.rect(x - 1, base - 4, 2, 4, shade(o.c, -0.3));
-      const tier = Math.max(4, Math.floor(th / 4));
-      for (let t = 0; t < 4; t++) {
-        // lowest tier widest, tapering to the tip
-        const w = 3 + (3 - t) * 3 + Math.floor(th / 12);
-        const yy = base - 5 - (t + 1) * tier + 2;
-        p.rect(x - w, yy, w * 2 + 1, tier + 1, o.c);
-        if (o.snow) p.rect(x - w + 1, yy, w * 2 - 1, 2, o.snow);
-      }
+      placeWrapped((px) => {
+        p.rect(px - 1, base - 4, 2, 4, shade(o.c, -0.3));
+        const tier = Math.max(4, Math.floor(th / 4));
+        for (let t = 0; t < 4; t++) {
+          // lowest tier widest, tapering to the tip
+          const w = 3 + (3 - t) * 3 + Math.floor(th / 12);
+          const yy = base - 5 - (t + 1) * tier + 2;
+          p.rect(px - w, yy, w * 2 + 1, tier + 1, o.c);
+          if (o.snow) p.rect(px - w + 1, yy, w * 2 - 1, 2, o.snow);
+        }
+      }, x, 20);
     }
   },
 
@@ -130,12 +113,14 @@ const PAINTERS = {
     for (let i = 0; i < towers; i++) {
       const x = Math.floor(((i + 0.3 + r() * 0.4) / towers) * W);
       const th = o.a * (0.6 + r() * 0.4);
-      p.rect(x - 8, o.y - th, 16, th, shade(o.c, -0.05));
-      for (let k = 0; k < 3; k++) p.rect(x - 8 + k * 6, o.y - th - 4, 4, 4, o.c);
-      p.rect(x - 1, o.y - th + 8, 2, 5, o.window || shade(o.c, -0.4));
-      if (o.roof) {
-        for (let k = 0; k < 8; k++) p.rect(x - 8 + k, o.y - th - 4 - (8 - k), 16 - k * 2, 1, o.roof);
-      }
+      placeWrapped((px) => {
+        p.rect(px - 8, o.y - th, 16, th, shade(o.c, -0.05));
+        for (let k = 0; k < 3; k++) p.rect(px - 8 + k * 6, o.y - th - 4, 4, 4, o.c);
+        p.rect(px - 1, o.y - th + 8, 2, 5, o.window || shade(o.c, -0.4));
+        if (o.roof) {
+          for (let k = 0; k < 8; k++) p.rect(px - 8 + k, o.y - th - 4 - (8 - k), 16 - k * 2, 1, o.roof);
+        }
+      }, x, 10);
     }
   },
 
@@ -167,26 +152,49 @@ const PAINTERS = {
     for (let i = 0; i < n; i++) {
       const cx = Math.floor(((i + 0.5) / n) * W + (r() - 0.5) * 30);
       const hh = o.a * (0.6 + r() * 0.4);
-      for (let y = 0; y < hh; y++) {
-        const half = Math.floor((hh - y) * 0.9);
-        p.rect(cx - half, o.y - hh + y, half * 2, 1, o.c);
-        if (y % 5 === 0) p.rect(cx - half, o.y - hh + y, half * 2, 1, shade(o.c, 0.08));
-      }
-      p.rect(cx, o.y - hh, Math.floor(hh * 0.9), hh, shade(o.c, -0.1)); // shaded face
+      placeWrapped((px) => {
+        for (let y = 0; y < hh; y++) {
+          const half = Math.floor(y * 0.9);
+          const row = o.y - hh + y;
+          p.rect(px - half, row, half * 2, 1, y % 5 === 0 ? shade(o.c, 0.08) : o.c);
+          p.rect(px, row, half, 1, y % 5 === 0 ? shade(o.c, -0.04) : shade(o.c, -0.12)); // the face in shadow
+        }
+      }, cx, hh);
     }
   },
 
-  // sails and masts on the horizon
+  // ships on the horizon: a hull, two masts, billowing sails and a pennant, in a row of different sizes
   ships(p, o) {
     const r = rng(o.seed);
     p.rect(0, o.y, W, H - o.y, o.c);
     const n = o.n || 4;
+    const dark = shade(o.c, -0.28);
     for (let i = 0; i < n; i++) {
-      const x = Math.floor(((i + 0.5) / n) * W);
-      const hh = o.a * (0.7 + r() * 0.3);
-      p.rect(x, o.y - hh, 2, hh, shade(o.c, -0.2));
-      p.rect(x - 8, o.y - hh + 4, 16, hh * 0.6, shade(o.c, 0.08)); // sail
-      p.rect(x - 10, o.y - 2, 22, 3, shade(o.c, -0.25)); // hull
+      const x0 = Math.floor(((i + 0.3 + r() * 0.4) / n) * W);
+      const hh = Math.floor(o.a * (0.6 + r() * 0.4));
+      const len = 22 + Math.floor(r() * 12);
+      placeWrapped((x) => {
+        // the hull: wider at the deck than at the keel, with the bow and stern lifting
+        for (let row = 0; row < 6; row++) {
+          const inset = Math.floor((5 - row) * 0.9);
+          p.rect(x - len / 2 + (5 - row) * 0 + inset, o.y - 6 + row, len - inset * 2, 1, row === 0 ? shade(o.c, -0.12) : dark);
+        }
+        p.rect(x + len / 2 - 3, o.y - 9, 4, 3, dark);
+        for (const mast of [-len * 0.22, len * 0.2]) {
+          const mx = Math.round(x + mast);
+          p.rect(mx, o.y - hh, 1, hh - 5, dark);
+          // two tiers of square sails, with a gap between them and above the deck
+          let top = o.y - 9;
+          for (const [halfW, tall] of [[6, Math.floor(hh * 0.3)], [5, Math.floor(hh * 0.24)]]) {
+            for (let row = 0; row < tall; row++) {
+              const bulge = row > 1 && row < tall - 1 ? 1 : 0;
+              p.rect(mx - halfW - bulge, top - tall + row, halfW * 2 + bulge * 2, 1, row === 0 ? dark : shade(o.c, 0.16 - (row / tall) * 0.08));
+            }
+            top -= tall + 2;
+          }
+          p.rect(mx + 1, o.y - hh, 3, 2, shade(o.c, 0.2)); // a pennant
+        }
+      }, x0, 22);
     }
   },
 
@@ -195,16 +203,18 @@ const PAINTERS = {
     p.rect(0, o.y, W, H - o.y, o.c);
     const n = o.n || 6;
     for (let i = 0; i < n; i++) {
-      const x = Math.floor(((i + r() * 0.5) / n) * W);
+      const x0 = Math.floor(((i + r() * 0.5) / n) * W);
       const hh = o.a * (0.5 + r() * 0.5);
-      p.rect(x, o.y - hh, 8, hh, shade(o.c, 0.04));
-      p.rect(x - 1, o.y - hh, 10, 3, shade(o.c, 0.14));
-      if (o.smoke) {
-        p.ctx.globalAlpha = 0.5;
-        p.ellipse(x + 8, o.y - hh - 6, 6, 4, o.smoke);
-        p.ellipse(x + 14, o.y - hh - 12, 8, 5, o.smoke);
-        p.ctx.globalAlpha = 1;
-      }
+      placeWrapped((x) => {
+        p.rect(x, o.y - hh, 8, hh, shade(o.c, 0.04));
+        p.rect(x - 1, o.y - hh, 10, 3, shade(o.c, 0.14));
+        if (o.smoke) {
+          p.ctx.globalAlpha = 0.5;
+          p.ellipse(x + 8, o.y - hh - 6, 6, 4, o.smoke);
+          p.ellipse(x + 14, o.y - hh - 12, 8, 5, o.smoke);
+          p.ctx.globalAlpha = 1;
+        }
+      }, x0, 24);
     }
     for (let x = 0; x < W; x += 24) p.rect(x, o.y - 10 - (x % 3) * 2, 20, 12, shade(o.c, 0.02));
   },
@@ -214,12 +224,14 @@ const PAINTERS = {
     const n = o.n || 6;
     p.ctx.globalAlpha = o.alpha ?? 0.85;
     for (let i = 0; i < n; i++) {
-      const x = Math.floor(((i + r() * 0.7) / n) * W);
+      const x0 = Math.floor(((i + r() * 0.7) / n) * W);
       const y = o.y + Math.floor(r() * o.a);
       const w = 16 + Math.floor(r() * 18);
-      p.ellipse(x, y, w, 5, o.c);
-      p.ellipse(x - w / 2, y + 2, Math.floor(w * 0.6), 4, o.c);
-      p.ellipse(x + w / 2, y + 2, Math.floor(w * 0.6), 4, o.c);
+      placeWrapped((x) => {
+        p.ellipse(x, y, w, 5, o.c);
+        p.ellipse(x - w / 2, y + 2, Math.floor(w * 0.6), 4, o.c);
+        p.ellipse(x + w / 2, y + 2, Math.floor(w * 0.6), 4, o.c);
+      }, x0, w * 1.3);
     }
     p.ctx.globalAlpha = 1;
   },
@@ -270,17 +282,19 @@ const PAINTERS = {
     p.rect(0, o.y, W, H - o.y, o.c);
     const n = o.n || 3;
     for (let i = 0; i < n; i++) {
-      const cx = Math.floor(((i + 0.5) / n) * W + (r() - 0.5) * 20);
-      for (let t = 0; t < 4; t++) {
-        const w = 22 - t * 4;
-        const y = o.y - 10 - t * 14;
-        p.rect(cx - w, y, w * 2, 3, shade(o.c, 0.1));
-        p.rect(cx - w + 2, y - 2, w * 2 - 4, 2, o.c);
-        p.rect(cx - w + 4, y + 3, w * 2 - 8, 11, o.c);
-        p.rect(cx - w - 3, y, 3, 2, o.c);
-        p.rect(cx + w, y, 3, 2, o.c);
-      }
-      p.rect(cx, o.y - 70, 1, 8, o.c);
+      const cx0 = Math.floor(((i + 0.5) / n) * W + (r() - 0.5) * 20);
+      placeWrapped((cx) => {
+        for (let t = 0; t < 4; t++) {
+          const w = 22 - t * 4;
+          const y = o.y - 10 - t * 14;
+          p.rect(cx - w, y, w * 2, 3, shade(o.c, 0.1));
+          p.rect(cx - w + 2, y - 2, w * 2 - 4, 2, o.c);
+          p.rect(cx - w + 4, y + 3, w * 2 - 8, 11, o.c);
+          p.rect(cx - w - 3, y, 3, 2, o.c);
+          p.rect(cx + w, y, 3, 2, o.c);
+        }
+        p.rect(cx, o.y - 70, 1, 8, o.c);
+      }, cx0, 28);
     }
   },
 
@@ -309,9 +323,12 @@ const PAINTERS = {
   },
 };
 
+Object.assign(PAINTERS, NATURE);
+
 const cache = new Map();
 
-const NO_HAZE = new Set(['clouds', 'stars']); // lights in the sky do not fade into it
+const HEX = /^#[0-9a-f]{6}$/i;
+const NO_HAZE = new Set(['clouds', 'stars', 'cumulus', 'stratus', 'cirrus', 'celestial', 'rays', 'fogbank', 'aurora']); // lights and weather in the sky do not fade into it
 
 /**
  * Atmospheric depth: a far layer (a slow `s`) is mixed toward the sky colour at its horizon, so distance reads as haze.
@@ -324,7 +341,14 @@ function hazed(o, theme) {
   if (amt <= 0.01) return o;
   const bands = theme.sky;
   const horizon = bands[Math.max(0, Math.min(bands.length - 1, Math.floor(o.y / Math.ceil(H / bands.length))))];
-  return { ...o, c: mix(o.c, horizon, amt) };
+  // every colour a layer carries fades with it, not just its main one: snow caps, roofs, lit windows, rock bands
+  const out = { ...o };
+  for (const key of Object.keys(out)) {
+    const v = out[key];
+    if (typeof v === 'string' && HEX.test(v)) out[key] = mix(v, horizon, amt);
+    else if (Array.isArray(v) && v.length && v.every((e) => typeof e === 'string' && HEX.test(e))) out[key] = v.map((e) => mix(e, horizon, amt));
+  }
+  return out;
 }
 
 /** Render a scenery layer to a canvas (cached by theme+index). Pass the theme to fade far layers into the sky. */

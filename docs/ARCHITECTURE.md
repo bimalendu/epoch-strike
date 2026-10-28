@@ -358,6 +358,23 @@ The terrain and backdrop try to look like land, not a tile map. Phase by phase:
 - `art/warm.js` warms the fringe and underside strips and decor sprites of every theme (`relief <theme>` tasks); the tile
   sprites themselves are painted when the level's terrain is baked, as before.
 
+**Backdrop** (`art/noise.js`, `art/scenery.js`, `art/scenery_nature.js`)
+- `noise.js` holds the one-dimensional noise every landform is cut from, all of it wrapping over the 480 px width: `wrapNoise`,
+  `ridged` (folded octaves: sharp crests, round valleys), `warped` (domain warp), `smooth`, `gullies` (rain channels) and `terraced`.
+- The natural painters in `scenery_nature.js` join the older ones in `PAINTERS`: landforms `ridges` (lit and shadowed faces, snowline,
+  forest teeth at the foot), `mesa`, `spires` (hoodoos and sea stacks), `arches` (a window cut with `clearRect`), `canyon`; plants
+  `forest` (a weighted mix of species: oak, conifer, birch, palm, cycad, baobab, bush, willow, cypress, dead) and `reeds`; water
+  `waterfall` and `lake`; and sky furniture `cumulus`, `stratus`, `cirrus`, `celestial` (sun or moon with dithered halo rings),
+  `rays`, `fogbank` and `aurora`. A theme's `layers` list is 4-6 of these, far to near, each with its own scroll speed `s`.
+- Rules: the sun, the moon and the aurora are layers, never part of `skyCanvas` (a test requires the sky canvas to hold only the band
+  colours). Soft edges are an ordered dither (`dithered`), not `globalAlpha`: a test requires every painted pixel to be opaque, because
+  Chromium and the software canvas blend alpha slightly differently and the parity check allows only 0.1 % of pixels to differ.
+- Anything the random stream places is drawn through `placeWrapped`, which paints it again one screen over when it is near an edge,
+  so no tree or tower is cut off where the layer tiles (the older painters were changed to use it too).
+- `hazed` (the far-layer fade into the sky colour) now tints every colour a layer carries (snow, roof, windows, rock bands) and skips
+  the sky's lights and weather (`NO_HAZE`).
+- `fallRect(layer)` gives the rectangle of a waterfall's falling water, so the animated shimmer can be drawn over exactly that.
+
 ## Art
 
 All art is drawn with rectangles by `Painter`, so it renders identically in a browser and in the software canvas used
