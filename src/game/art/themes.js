@@ -27,6 +27,7 @@ export const THEMES = {
     water: WATER, lava: LAVA, fx: 'leaves',
   },
   volcano: {
+    glow: true,
     sky: ['#2a0e18', '#5a1a20', '#a03a1a', '#e0781e'],
     layers: [
       { k: 'stars', c: '#ffb070', y: 0, a: 80, s: 0.02, n: 40, seed: 8 },
@@ -51,6 +52,7 @@ export const THEMES = {
     water: { base: '#3a7aa8', top: '#a8e0f8', deep: '#2a5a88' }, lava: LAVA, fx: 'snow',
   },
   cave: {
+    glow: true, haze: 0,
     sky: ['#06060e', '#0a0a18', '#12101e'],
     layers: [
       { k: 'cave', c: '#14122a', y: 0, a: 80, s: 0.1, seed: 16, cells: 6 },
@@ -170,6 +172,7 @@ export const THEMES = {
     water: WATER, lava: LAVA, fx: 'dust',
   },
   factory: {
+    glow: true,
     sky: ['#3a2e28', '#54443a', '#745c4a', '#8a6e56'],
     layers: [
       { k: 'chimneys', c: '#2a2420', y: 190, a: 90, s: 0.1, seed: 47, smoke: '#5a4a40', n: 6 },
@@ -216,6 +219,7 @@ export const THEMES = {
     water: { base: '#1f4a78', top: '#5a9ad0', deep: '#102a48' }, lava: LAVA, fx: 'snow',
   },
   neon: {
+    glow: true, haze: 0.2,
     sky: ['#10082a', '#2a0a4a', '#5a1a6a', '#b0307a'],
     layers: [
       { k: 'stars', c: '#ff9ad8', y: 0, a: 100, s: 0.01, n: 40, seed: 58 },
@@ -227,6 +231,7 @@ export const THEMES = {
     water: { base: '#2a1a5a', top: '#ff4aa8', deep: '#120a30' }, lava: LAVA, fx: 'rain',
   },
   megacity: {
+    glow: true, haze: 0.2,
     sky: ['#04081a', '#081a38', '#0a3458', '#1a6a8a'],
     layers: [
       { k: 'stars', c: '#9ae0ff', y: 0, a: 120, s: 0.01, n: 60, seed: 61 },
@@ -238,6 +243,7 @@ export const THEMES = {
     water: { base: '#0a3a6a', top: '#4af0ff', deep: '#04182e' }, lava: LAVA, fx: 'dust',
   },
   citadel: {
+    glow: true, haze: 0.2,
     sky: ['#08001a', '#240a3a', '#4a0a56', '#7a1a6a'],
     layers: [
       { k: 'stars', c: '#e0a0ff', y: 0, a: 160, s: 0.01, n: 90, seed: 64 },

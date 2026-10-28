@@ -12,6 +12,9 @@ import '../bosses.js'; // registers every boss def before the list below is buil
 import { playerSprites } from './player.js';
 import { warmFx } from './fx.js';
 import { warmHitFrames } from './hit.js';
+import { skyCanvas } from './sky.js';
+import { warmGlow } from './glow.js';
+import { warmVignette } from './vignette.js';
 import { warmHud } from './hud.js';
 import { warmPickups } from './pickups.js';
 
@@ -19,12 +22,16 @@ import { warmPickups } from './pickups.js';
 export function warmTasks() {
   const tasks = [];
   for (const [id, theme] of Object.entries(THEMES)) {
-    (theme.layers || []).forEach((layer, i) => tasks.push({ name: `scenery ${id}:${i}`, run: () => sceneryLayer(`${theme.id || id}:${i}`, layer) }));
+    (theme.layers || []).forEach((layer, i) => tasks.push({ name: `scenery ${id}:${i}`, run: () => sceneryLayer(`${theme.id || id}:${i}`, layer, theme) }));
   }
+  for (const [id, theme] of Object.entries(THEMES)) tasks.push({ name: `sky ${id}`, run: () => skyCanvas({ ...theme, id }) });
   for (const [id, def] of Object.entries(ENEMY_DEFS)) tasks.push({ name: `enemy ${id}`, run: () => warmHitFrames(enemyFrames(def)) });
   tasks.push({ name: 'player', run: () => playerSprites() });
   tasks.push({ name: 'effects', run: () => warmFx() });
   tasks.push({ name: 'hud', run: () => warmHud() });
+  tasks.push({ name: 'glow', run: () => warmGlow() });
+  tasks.push({ name: 'vignette', run: () => warmVignette('dark') });
+  tasks.push({ name: 'vignette red', run: () => warmVignette('red') });
   tasks.push({ name: 'pickups', run: () => warmPickups() });
   return tasks;
 }

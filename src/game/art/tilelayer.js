@@ -8,6 +8,7 @@ import { T, SOLID } from '../tiles.js';
 import { getTheme } from './themes.js';
 import { tileSprite, TOP, LEFT, RIGHT, BOTTOM } from './tilepaint.js';
 import { sceneryLayer } from './scenery.js';
+import { skyCanvas } from './sky.js';
 import { shade } from './common.js';
 
 const FILLED = new Uint8Array(16);
@@ -143,17 +144,12 @@ export function getTileLayer(world) {
 
 // ---- backdrop ----
 export function drawSky(ctx, theme) {
-  const n = theme.sky.length;
-  const h = Math.ceil(VIEW_H / n);
-  for (let i = 0; i < n; i++) {
-    ctx.fillStyle = theme.sky[i];
-    ctx.fillRect(0, i * h, VIEW_W, h);
-  }
+  ctx.drawImage(skyCanvas(theme), 0, 0);
 }
 
 export function drawParallax(ctx, theme, camX, camY, tall) {
   theme.layers.forEach((layer, i) => {
-    const img = sceneryLayer(`${theme.id}:${i}`, layer);
+    const img = sceneryLayer(`${theme.id}:${i}`, layer, theme);
     const speed = layer.s || 0.1;
     let x = -Math.floor((camX * speed) % VIEW_W);
     if (x > 0) x -= VIEW_W;

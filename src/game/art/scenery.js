@@ -4,7 +4,7 @@
 import { Painter } from '../../engine/gfx.js';
 import { rng, hash2 } from '../../engine/rng.js';
 import { VIEW_W, VIEW_H } from '../constants.js';
-import { shade } from './common.js';
+import { shade, mix } from './common.js';
 
 const W = VIEW_W;
 const H = VIEW_H;
@@ -311,13 +311,32 @@ const PAINTERS = {
 
 const cache = new Map();
 
-/** Render a scenery layer to a canvas (cached by theme+index). */
-export function sceneryLayer(key, layer) {
+const NO_HAZE = new Set(['clouds', 'stars']); // lights in the sky do not fade into it
+
+/**
+ * Atmospheric depth: a far layer (a slow `s`) is mixed toward the sky colour at its horizon, so distance reads as haze.
+ * The nearest layers (s >= 0.5) are untouched. `theme.haze` is the strength at the farthest (default 0.35, 0 = none).
+ */
+function hazed(o, theme) {
+  const k = theme.haze ?? 0.35;
+  if (!k || !o.c || NO_HAZE.has(o.k)) return o;
+  const amt = k * (1 - Math.min(1, (o.s || 0.1) / 0.5));
+  if (amt <= 0.01) return o;
+  const bands = theme.sky;
+  const horizon = bands[Math.max(0, Math.min(bands.length - 1, Math.floor(o.y / Math.ceil(H / bands.length))))];
+  return { ...o, c: mix(o.c, horizon, amt) };
+}
+
+/** Render a scenery layer to a canvas (cached by theme+index). Pass the theme to fade far layers into the sky. */
+export function sceneryLayer(key, layer, theme = null) {
   let c = cache.get(key);
   if (c) return c;
   const p = new Painter(W, H);
   const fn = PAINTERS[layer.k];
-  if (fn) fn(p, { seed: 1, a: 40, y: 150, ...layer });
+  if (fn) {
+    const o = { seed: 1, a: 40, y: 150, ...layer };
+    fn(p, theme ? hazed(o, theme) : o);
+  }
   c = p.canvas;
   cache.set(key, c);
   return c;

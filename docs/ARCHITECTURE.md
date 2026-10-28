@@ -375,6 +375,20 @@ still comes from `world.fxRand`.
   (3), a boss phase change (4, from the `bossPhase` event) and a boss going down (5), then `BOSS_SLOWMO` seconds of the world
   stepping every other frame. Tests that wait out a death have to allow `HIT_STOP.death` frames of slack.
 
+**World rendering.**
+* **Sky** (`art/sky.js`): a theme's `sky` bands are blended into each other with a 4x4 Bayer dither (a quarter of a band either
+  side of each edge) and built once into a 480x270 canvas, so `drawSky` is one `drawImage`. Only the theme's own colours appear.
+* **Haze** (`scenery.js hazed`): `sceneryLayer(key, layer, theme)` mixes a layer's colour `c` toward the sky colour at its
+  horizon, by `theme.haze` (default 0.35, `0` = off) times how far the layer is (scroll speed `s`; `s >= 0.5` is untouched). Clouds
+  and stars are skipped. It happens when the layer is baked, so it costs nothing per frame.
+* **Shadows** (`art/shadow.js`): two translucent rows under the soldier and every grounded, non-flying enemy, drawn before the
+  sprites. Not in dark (cave) themes, where the veil does the shading. `def.noShadow` opts an enemy out.
+* **Glow** (`art/glow.js`): a theme with `glow: true` (neon, megacity, citadel, cave, volcano, factory) gets a soft halo behind
+  bullets, enemy shots and pickups at high effects quality. A halo is a cached disc, one `drawImage`. A new bullet kind should get
+  an entry in `BULLET_GLOW` (the weapon's colour); without one it glows like the rifle.
+* **Vignette** (`art/vignette.js`): 24 faint rings darken the screen edges (high quality only), and the same shape in red is the
+  hurt flash for the first 0.45 s after a death (`world.deathT`). Both are cached overlays with their own warm-up task.
+
 ## Dev tools
 
 * `npm run shots` - menu, play, pause, results... into `docs/screenshots`.

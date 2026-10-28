@@ -12,6 +12,9 @@ import { drawPickup } from './art/pickups.js';
 import { getTheme } from './art/themes.js';
 import { drawDarkness } from './art/darkness.js';
 import { drawTorches } from './art/torch.js';
+import { drawShadows } from './art/shadow.js';
+import { drawPickupGlows, drawBulletGlows } from './art/glow.js';
+import { drawVignette, drawHurt } from './art/vignette.js';
 import { drawProps, drawSwings, drawVents } from './art/props.js';
 import { drawSky, drawParallax, drawTerrain, drawLiquids, drawAmbient } from './art/tilelayer.js';
 
@@ -20,6 +23,8 @@ export function renderWorld(ctx, world) {
   const ox = cam.rx, oy = cam.ry;
 
   const theme = getTheme(world.level.theme);
+  const fancy = world.fxQuality !== 'low'; // glow, vignette: skipped at low effects quality
+  const glow = fancy && !!theme.glow;
   drawSky(ctx, theme);
   drawParallax(ctx, theme, cam.x, cam.y, cam.tall);
   drawTerrain(ctx, world, ox, oy);
@@ -31,6 +36,8 @@ export function renderWorld(ctx, world) {
   drawEmitters(ctx, world, ox, oy);
 
   drawTorches(ctx, world, ox, oy);
+  if (!theme.dark) drawShadows(ctx, world, ox, oy); // the caves are lit by the veil instead
+  if (glow) drawPickupGlows(ctx, world, ox, oy);
   for (const pk of world.pickups) drawPickup(ctx, pk, ox, oy);
   for (const e of world.enemies) if (e.alive && !e.hidden) drawEnemy(ctx, e, ox, oy);
   drawSleepers(ctx, world, ox, oy);
@@ -46,12 +53,15 @@ export function renderWorld(ctx, world) {
     if (p.barrier > 0 && (p.barrier > 2 || Math.floor(p.barrier * 8) % 2 === 0)) drawBarrier(ctx, p, ox, oy, world.time);
   }
   if (world.player.alive) drawQuicksand(ctx, world.player, ox, oy);
+  if (glow) drawBulletGlows(ctx, world, ox, oy);
   for (const b of world.bullets) drawBullet(ctx, b, ox, oy);
   for (const b of world.ebullets) drawEnemyBullet(ctx, b, ox, oy);
   drawFx(ctx, world, ox, oy);
   drawAlarm(ctx, world, ox, oy);
   if (theme.dark) drawDarkness(ctx, world, ox, oy);
   drawAmbient(ctx, theme, cam.x, world.time);
+  if (fancy) drawVignette(ctx);
+  if (!world.player.alive && world.deathT < HURT_TIME) drawHurt(ctx, world.deathT / HURT_TIME);
   if (world.bombFlash > 0) {
     ctx.globalAlpha = Math.min(1, world.bombFlash * 1.6);
     ctx.fillStyle = '#ffffff';
@@ -60,6 +70,7 @@ export function renderWorld(ctx, world) {
   }
 }
 
+const HURT_TIME = 0.45; // seconds the screen edges stay red after a death
 const RIDE_LIFT = 7;
 
 /** The war chariot the soldier rides during a 'chariot' zone: a red car on two spoked wheels (cosmetic). */

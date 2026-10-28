@@ -9,6 +9,18 @@ export function shade(hex, amt) {
   return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
 }
 
+/** Mix two #rrggbb colours: t = 0 gives `a`, t = 1 gives `b`. */
+export function mix(a, b, t) {
+  const pa = parseInt(a.slice(1, 7), 16);
+  const pb = parseInt(b.slice(1, 7), 16);
+  const ch = (shift) => {
+    const x = (pa >> shift) & 255;
+    const y = (pb >> shift) & 255;
+    return Math.round(x + (y - x) * t);
+  };
+  return '#' + ((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1);
+}
+
 /** Legs for a 4-frame run cycle on a 24x32 humanoid. frame: -1 idle, 0..3 run. */
 export function drawLegs(p, frame, pants, boots) {
   const pd = shade(pants, -0.3);
