@@ -10,6 +10,8 @@ import { enemyFrames } from './enemies.js';
 import { ENEMY_DEFS } from '../enemy_defs.js';
 import '../bosses.js'; // registers every boss def before the list below is built
 import { playerSprites } from './player.js';
+import { gunSprites } from './guns.js';
+import { WEAPONS } from '../weapons.js';
 import { warmFx } from './fx.js';
 import { warmHitFrames } from './hit.js';
 import { skyCanvas } from './sky.js';
@@ -27,6 +29,7 @@ export function warmTasks() {
   for (const [id, theme] of Object.entries(THEMES)) tasks.push({ name: `sky ${id}`, run: () => skyCanvas({ ...theme, id }) });
   for (const [id, def] of Object.entries(ENEMY_DEFS)) tasks.push({ name: `enemy ${id}`, run: () => warmHitFrames(enemyFrames(def)) });
   tasks.push({ name: 'player', run: () => playerSprites() });
+  for (const id of Object.keys(WEAPONS)) tasks.push({ name: `gun ${id}`, run: () => gunSprites(id) });
   tasks.push({ name: 'effects', run: () => warmFx() });
   tasks.push({ name: 'hud', run: () => warmHud() });
   tasks.push({ name: 'glow', run: () => warmGlow() });

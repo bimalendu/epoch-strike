@@ -3,6 +3,7 @@
 import { Painter, blit, lineTo } from '../../engine/gfx.js';
 import { drawText } from '../../engine/font.js';
 import { playerSprites } from './player.js';
+import { PAD } from './bake.js';
 
 const SIZES = [18, 32, 56];
 const FRAMES = 6;
@@ -145,8 +146,8 @@ export function drawFx(ctx, world, ox, oy) {
       }
       case 'corpse': {
         const S = playerSprites();
-        const img = S.ball[Math.floor(f.t * 12) % 4];
-        blit(ctx, img, x - 12, y - 16, f.face < 0, false);
+        const img = S.dead[Math.floor(f.t * 12) % S.dead.length];
+        blit(ctx, img, x - 12 - PAD, y - 16 - PAD, f.face < 0, false);
         break;
       }
       default:

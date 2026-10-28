@@ -51,7 +51,7 @@ export function renderWorld(ctx, world) {
     if (ride) drawRideCar(ctx, p, ox, oy, world.time);
     if (!blink && p.mode === 'tank') drawTank(ctx, p.x - ox, p.y - oy, p.face, p.aimVec(), p.anim * 0.5, p.tankHp, true, p.grounded && Math.abs(p.vx) > 1);
     else if (!blink && p.mode === 'fly') drawBike(ctx, p.x - ox, p.y - oy, p.face, p.aimVec(), p.anim, p.bikeHp, { x: p.x - ox + p.face * 3, y: p.y - oy - 14 });
-    else if (!blink) drawPlayer(ctx, p, ox, oy + (ride ? RIDE_LIFT : 0));
+    else if (!blink) drawPlayer(ctx, p, ox, oy + (ride ? RIDE_LIFT : 0), world.time);
     if (p.barrier > 0 && (p.barrier > 2 || Math.floor(p.barrier * 8) % 2 === 0)) drawBarrier(ctx, p, ox, oy, world.time);
   }
   if (world.player.alive) drawQuicksand(ctx, world.player, ox, oy);

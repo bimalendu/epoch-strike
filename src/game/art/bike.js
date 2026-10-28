@@ -48,9 +48,14 @@ export function drawBike(ctx, x, y, face, aim, t, hp = 2, shoulder = null) {
   r(-4, -11 + bob, 7, 4, '#2a3a6a');
   r(-3, -17 + bob, 6, 6, '#3a5a9a');
   r(-3, -17 + bob, 6, 1, '#6a8ac8');
+  r(-3, -23 + bob, 7, 7, '#1b1018');
+  r(-6, -22 + bob, 3, 3, '#1b1018');
   r(-2, -22 + bob, 5, 5, '#e9a97a');
+  r(-2, -19 + bob, 1, 2, '#b5784f');
   r(-2, -22 + bob, 5, 2, '#d92b2b');
+  r(-1, -22 + bob, 3, 1, '#f05a4a');
   r(-5, -21 + bob, 3, 1, '#d92b2b');
+  r(0, -19 + bob, 1, 1, '#f4f0f0');
   r(1, -19 + bob, 1, 1, '#1a1a1a');
   // the aimed gun
   const sh = shoulder || { x: px + s * 3, y: py - 14 };

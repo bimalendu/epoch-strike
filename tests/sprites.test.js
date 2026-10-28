@@ -66,3 +66,52 @@ test('lightenedCopy mixes toward white and keeps alpha', () => {
   assert.deepEqual(px(l, 2, 2), [0xe0, 0xc0, 0xa0, 255]);
   assert.deepEqual(px(l, 0, 0), [0, 0, 0, 0]);
 });
+
+// ---- player ----
+import { WEAPONS } from '../src/game/weapons.js';
+import { playerSprites, drawPlayer } from '../src/game/art/player.js';
+import { gunSprites, GUN_ART } from '../src/game/art/guns.js';
+import { SoftCanvas } from '../tools/softcanvas.js';
+
+test('every weapon has gun art at five angles, and an unknown weapon falls back to the rifle', () => {
+  for (const id of Object.keys(WEAPONS)) {
+    assert.ok(GUN_ART[id], `${id} has gun art`);
+    assert.equal(gunSprites(id).length, 5);
+  }
+  assert.equal(gunSprites('no-such-weapon').length, 5);
+});
+
+test('the player has all its frames, baked', () => {
+  const S = playerSprites();
+  assert.equal(S.idle.length, 2);
+  assert.equal(S.run.length, 6);
+  assert.equal(S.ball.length, 8);
+  assert.equal(S.dead.length, 4);
+  for (const img of [...S.idle, ...S.run, ...S.ball, ...S.dead, S.prone]) {
+    assert.equal(img.width, 26);
+    assert.equal(img.height, 33);
+  }
+});
+
+test('drawPlayer draws every weapon at the eight aims, upright and on the ceiling', () => {
+  const c = new SoftCanvas(120, 80);
+  const ctx = c.getContext('2d');
+  const dirs = [[1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]];
+  for (const id of Object.keys(WEAPONS)) {
+    for (const [ax, ay] of dirs) {
+      for (const gdir of [1, -1]) {
+        for (const fireT of [0, WEAPONS[id].cooldown]) {
+          const n = Math.hypot(ax, ay);
+          const pl = {
+            face: ax < 0 ? -1 : 1, gdir, mode: 'foot', grounded: true, inWater: false, prone: false, vx: 0, anim: 0,
+            weapon: id, fireT, rapid: false, x: 60, y: 60,
+            spriteTop() { return this.gdir > 0 ? this.y - 32 : this.y - 30; },
+            shoulder() { return { x: this.x + this.face * 2, y: this.y - 21 }; },
+            aimVec() { return { x: ax / n, y: ay / n }; },
+          };
+          assert.doesNotThrow(() => drawPlayer(ctx, pl, 0, 0, 1.2));
+        }
+      }
+    }
+  }
+});

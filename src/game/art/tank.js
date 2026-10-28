@@ -86,11 +86,20 @@ export function drawTank(ctx, x, y, face, aim, t, hp = 4, rider = true, moving =
   // the rider in the hatch
   if (rider) {
     const hx = Math.round(x) - s * 4;
+    ctx.fillStyle = '#1b1018';
+    ctx.fillRect(hx - 3, top - 4, 7, 6);
+    ctx.fillRect(hx - 3 - s * 3, top - 3, 5, 3);
     ctx.fillStyle = '#e9a97a';
     ctx.fillRect(hx - 2, top - 3, 5, 4);
+    ctx.fillStyle = '#b5784f';
+    ctx.fillRect(hx - s * 2, top - 1, 1, 2);
     ctx.fillStyle = '#d92b2b';
     ctx.fillRect(hx - 2, top - 3, 5, 2);
     ctx.fillRect(hx - 2 - s * 3, top - 2, 3, 1);
+    ctx.fillStyle = '#f05a4a';
+    ctx.fillRect(hx - 1, top - 3, 3, 1);
+    ctx.fillStyle = '#f4f0f0';
+    ctx.fillRect(hx, top - 1, 1, 1);
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(hx + s, top - 1, 1, 1);
   }
