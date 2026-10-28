@@ -17,13 +17,14 @@
 //   onPhase?(e, w, phaseIndex)
 
 import { ARCH, groundPhysics } from './ai.js';
-import { explosion, spark, ring, popup } from './fx.js';
+import { explosion, spark, ring, popup, debris, smoke } from './fx.js';
 import { killEnemy } from './enemies.js';
 
 export const MIN_BOSS_TELE = 0.6; // every attack announces itself at least this long
 const ENTER_MIN = 1.8;
 const PHASE_TIME = 1.5;
 export const DEATH_TIME = 3.0;
+const DEATH_SCRAP = ['#14100e', '#4a4650', '#8a8a96', '#ff8a1e']; // what a dying boss sheds
 
 // ---- helpers for attack scripts ----
 
@@ -263,6 +264,10 @@ export function bossUpdate(e, world, dt) {
         const ry = e.y - world.rand() * e.h;
         explosion(world, rx, ry, world.rand() < 0.3 ? 1 : 0);
         world.sfx(world.rand() < 0.4 ? 'bigBoom' : 'boom');
+        // the wreck throws off scrap and smoke (cosmetic: fxRand only, so the fight is unchanged)
+        const fr = world.fxRand;
+        debris(world, e.x + (fr() - 0.5) * e.w, e.y - fr() * e.h, DEATH_SCRAP, 6, 130);
+        smoke(world, e.x + (fr() - 0.5) * e.w * 0.8, e.y - e.h * (0.3 + fr() * 0.6), 3);
       }
       if (bs.t <= 0) finish(e, world);
       break;
