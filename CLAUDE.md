@@ -10,7 +10,7 @@ Epoch Strike is a 2D run-and-gun (20 levels and 20 bosses) written in plain HTML
 
     npm start                     # static server on http://localhost:8080 (PORT env overrides)
     npm test                      # full suite: node --test, ~10 s, nothing to install
-    npm run coverage              # the same suite with a coverage floor on src/ (98 % lines, 93 % branches, 97 % functions); CI runs this
+    npm run coverage              # the same suite with a coverage floor on src/ (99 % lines, 94 % branches, 98 % functions); CI runs this
     npm run mutate                # mutation testing (Stryker) of the pure modules against tests/unit; minutes, by hand, never in CI. Report: reports/mutation/mutation.html
     npm run test:unit             # or test:integration / test:e2e: one layer (tests/unit, tests/integration, tests/e2e)
     npm run e2e                   # real browsers (Playwright; dev-only, needs `npm ci` and `npx playwright install`): chromium, firefox, webkit, mobile
@@ -82,7 +82,7 @@ The suite runs the real game headlessly. Tests live in `tests/unit` (one module,
 - The credits `BOSS_ORDER` must stay in step with the level scripts.
 - Property tests use the game's own seeded `engine/rng.js`, so a failure replays exactly (the case number is in the message): save-file fuzz (`unit/save`), the keyboard model (`unit/input`), random builder courses against the solver and the bot (`integration/levels`), and random play for determinism (`integration/determinism`). Steps that follow each other add up (`up(3)` then `up(3)` is refused), but a pit straight after a step is judged separately: put ground between them.
 - Dev tools (`tests/e2e/tools.test.js`): `shots`, `themeshots`, `levelshots`, `bossshots`, `musicwav`, `perf` and `economy` must run and write valid files, and `tests/e2e/browser/fixtures/parity.json` must match the software canvas (`npm run parity` regenerates it).
-- Coverage floor on `src/` (`npm run coverage`): 98 % lines, 93 % branches, 97 % functions. Raise the numbers in `package.json` when coverage rises.
+- Coverage floor on `src/` (`npm run coverage`): 99 % lines, 94 % branches, 98 % functions. Raise the numbers in `package.json` when coverage rises.
 
 ## Deployment
 `.github/workflows/ci.yml` runs `npm run coverage` (job `test`: the suite plus the coverage floor, Node >= 22.8) and the Playwright suite (job `e2e`) on pushes to `main` and on PRs. `pages.yml` runs the tests, copies `index.html`, `style.css` and `src/` into `_site`, deploys to GitHub Pages, then runs the `@smoke` specs against the live URL (job `smoke`).

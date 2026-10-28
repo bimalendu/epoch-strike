@@ -444,7 +444,7 @@ rather than a guess about players, and a change to a level's medals shows up as 
 **The shipped site** is `index.html`, `style.css` and `src/` (plain ES modules with relative imports, no packages).
 `tests/e2e/release.test.js` follows every import from `src/main.js`, checks nothing leaves `src/` and nothing is bare, boots
 `main.js` against a fake DOM (title -> menu -> play, auto-pause on blur, the F and M hotkeys, the warm-up) and checks the
-README's level table against the game. `.github/workflows/ci.yml` runs `npm run coverage` (the same suite, failing under 98 % lines, 93 % branches or 97 % functions
+README's level table against the game. `.github/workflows/ci.yml` runs `npm run coverage` (the same suite, failing under 99 % lines, 94 % branches or 98 % functions
 of `src/`) on every push and pull request;
 `pages.yml` runs the tests, copies the three paths into `_site` and deploys with the official Pages actions.
 
