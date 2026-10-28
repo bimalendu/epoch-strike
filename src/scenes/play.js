@@ -48,6 +48,7 @@ export class PlayScene {
       loadout: run.loadout,
       shake: game.save.options.shake,
       fx: game.save.options.fx,
+      flashes: game.save.options.flashes,
       god,
     });
     run.score.hi = Math.max(run.score.hi, game.save.best);
@@ -322,8 +323,9 @@ export class PlayScene {
       weaponLabel: this.weaponLabel,
       intro: this.introK,
       trail: this.trail,
+      large: this.game.save.options.hud === 'large',
     });
-    this.toasts.draw(ctx, w.boss ? 62 : 36);
+    this.toasts.draw(ctx, this.game.save.options.hud === 'large' ? 64 : w.boss ? 62 : 36);
     if (this.clearT >= 0) {
       drawText(ctx, 'STAGE CLEAR', VIEW_W / 2, 110, '#ffd23a', 3, 'center', '#000000');
     }

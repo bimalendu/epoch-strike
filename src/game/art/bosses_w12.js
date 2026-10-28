@@ -3,6 +3,7 @@
 
 import { shade } from './common.js';
 import { brush, bossFrames } from './bosses.js';
+import { flick } from './flash.js';
 
 const STEEL = '#8a92a0';
 
@@ -16,7 +17,7 @@ function drawSuperTank(ctx, e, cx, cy, pose) {
   const { atk, state, tele } = pose;
   const act = state === 'tele' || state === 'attack';
   const open = e.def.weakBox(e) !== null;
-  const flash = tele > 0.5 && Math.floor(t * 10) % 2 === 0;
+  const flash = tele > 0.5 && flick(t, 10) % 2 === 0;
   const hull = pose.rage ? '#5a5048' : '#566450';
   const hullD = shade(hull, -0.4);
   const hullL = shade(hull, 0.35);

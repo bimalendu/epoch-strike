@@ -47,8 +47,10 @@ The game pauses by itself when you leave the window, and the touch controls appe
 * **Score.** Kills chain into combos (up to x2), medals are 500 each, and each cleared level pays 2,000 per life left plus
   5,000 for a clean run. Clearing the game pays 50,000, no continues 25,000 more, and a game without a single death 100,000.
 * **Options.** SFX and music volume, difficulty (Easy: 5 lives and slower bullets; Hard: faster bullets and no medals),
-  screen shake, effects quality (High or Low, for slow devices) and the touch controls (Auto, On, Off). Your progress, high
-  scores and options are saved in the browser.
+  screen shake, effects quality (High or Low, for slow devices), the touch controls (Auto, On, Off) and three display
+  choices: **Flashes** (Reduced softens the smart-bomb white-out, hit flashes and boss blinks and halves the shake), **HUD
+  size** (Large doubles the corner clusters) and a **CRT filter** (scanlines). Your progress, high scores and options are
+  saved in the browser.
 
 ## The 20 eras
 

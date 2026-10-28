@@ -6,7 +6,7 @@ const VERSION = 1;
 const MAX_SCORES = 10;
 const MAX_HINTS = 32;
 
-export const DEFAULT_OPTIONS = { sfx: 0.8, music: 0.6, difficulty: 'normal', shake: true, fx: 'high', touch: 'auto' };
+export const DEFAULT_OPTIONS = { sfx: 0.8, music: 0.6, difficulty: 'normal', shake: true, fx: 'high', touch: 'auto', flashes: 'full', crt: 'off', hud: 'normal' };
 
 /** In-memory stand-in with the localStorage interface (tests, or when real storage is blocked). */
 export class MemoryStorage {
@@ -92,6 +92,9 @@ export class SaveData {
       d.options.shake = op.shake !== false;
       d.options.fx = op.fx === 'low' ? 'low' : 'high';
       d.options.touch = ['auto', 'on', 'off'].includes(op.touch) ? op.touch : 'auto';
+      d.options.flashes = op.flashes === 'reduced' ? 'reduced' : 'full';
+      d.options.crt = op.crt === 'scanlines' ? 'scanlines' : 'off';
+      d.options.hud = op.hud === 'large' ? 'large' : 'normal';
       d.scores = (Array.isArray(o.scores) ? o.scores : []).map(sanitizeScore).filter(Boolean);
       d.scores.sort((a, b) => b.score - a.score);
       d.scores.length = Math.min(d.scores.length, MAX_SCORES);

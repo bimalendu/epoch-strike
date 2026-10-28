@@ -3,6 +3,7 @@
 
 import { shade } from './common.js';
 import { brush, bossFrames } from './bosses.js';
+import { flick } from './flash.js';
 
 const IRON = '#aab2c0';
 
@@ -20,7 +21,7 @@ function drawSiegeTower(ctx, e, cx, cy, pose) {
   const act = state === 'tele' || state === 'attack';
   const rm = e.rm;
   const open = e.def.weakBox(e) !== null;
-  const pulse = Math.floor(t * 9) % 2;
+  const pulse = flick(t, 9) % 2;
   const rolling = Math.abs(e.vx) > 2;
 
   // wheels (three great spoked wheels)
@@ -156,7 +157,7 @@ function drawOni(ctx, e, cx, cy, pose) {
   const { atk, tele, state } = pose;
   const act = state === 'tele' || state === 'attack';
   const open = e.def.weakBox(e) !== null;
-  const pulse = Math.floor(t * 9) % 2;
+  const pulse = flick(t, 9) % 2;
   const sm = e.sm;
   const lp = e.lp;
   const walking = Math.abs(e.vx) > 2 && e.grounded;
@@ -293,7 +294,7 @@ function drawGhostGalleon(ctx, e, cx, cy, pose) {
   const glow = '#4af0b8';
   const glowH = '#d8fff0';
   const bob = Math.round(Math.sin(t * 1.7) * 1);
-  const flash = tele > 0.5 && Math.floor(t * 10) % 2 === 0;
+  const flash = tele > 0.5 && flick(t, 10) % 2 === 0;
 
   // mist hugging the waterline
   ctx.globalAlpha = baseAlpha * 0.5;

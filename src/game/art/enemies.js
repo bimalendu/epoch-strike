@@ -20,6 +20,7 @@ import { registerCoast } from './coast.js';
 import { registerModern } from './modern.js';
 import { drawEnemyBulletArt } from './ebullets.js';
 import { flashCtx } from './hit.js';
+import { flick } from './flash.js';
 
 const cache = new Map();
 
@@ -291,7 +292,7 @@ export function drawEnemy(ctx, e, ox, oy) {
   const moving = def.flyer || (Math.abs(e.vx) > 1 && e.grounded);
   let img = moving ? f.run[Math.floor(e.anim) % f.run.length] : f.idle;
   // telegraph: flicker to the bright frame before an attack
-  if (e.state === 'tele' && f.hot && Math.floor(e.t * 14) % 2 === 0) img = f.hot;
+  if (e.state === 'tele' && f.hot && flick(e.t, 14) % 2 === 0) img = f.hot;
   const flipX = e.face < 0;
   const flipY = e.gdir < 0;
   blit(ctx, img, e.x - ox - f.ox, e.y - oy - f.h, flipX, flipY);

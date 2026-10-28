@@ -173,11 +173,14 @@ test('main.js boots in a fake browser: title -> menu -> play, pause on blur, F g
   const doc = new Target();
   const canvas = new SoftCanvas(VIEW_W, VIEW_H);
   const calls = { fullscreen: 0, exit: 0 };
-  const root = { requestFullscreen: () => { calls.fullscreen++; return Promise.resolve(); } };
+  const css = {};
+  const classes = new Set();
+  const root = { requestFullscreen: () => { calls.fullscreen++; return Promise.resolve(); }, style: { setProperty: (k, v) => { css[k] = v; } } };
   Object.assign(doc, {
     hidden: false,
     fullscreenElement: null,
     documentElement: root,
+    body: { classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) } },
     exitFullscreen: () => { calls.exit++; },
     getElementById: (id) => (id === 'game' ? canvas : null),
   });
@@ -211,6 +214,16 @@ test('main.js boots in a fake browser: title -> menu -> play, pause on blur, F g
     // 1280x720 at devicePixelRatio 2: the largest whole device-pixel multiple (5 device px per game px) is 2.5 css px
     assert.equal(canvas.style.width, `${VIEW_W * 2.5}px`);
     assert.equal(canvas.style.height, `${VIEW_H * 2.5}px`);
+    // the CRT filter's scanlines follow the pixel grid, and the page class follows the option
+    assert.equal(css['--crt-px'], '2.5px');
+    assert.equal(css['--crt-top'], `${(720 - VIEW_H * 2.5) / 2}px`);
+    assert.equal(classes.has('crt'), false, 'off by default');
+    game.save.setOption('crt', 'scanlines');
+    game.applyDisplay();
+    assert.equal(classes.has('crt'), true, 'on after the option is changed');
+    game.save.setOption('crt', 'off');
+    game.applyDisplay();
+    assert.equal(classes.has('crt'), false);
 
     // the art warm-up runs a few ms per frame while the title is up, and finishes
     assert.ok(win.__warmer && win.__warmer.total > 100);

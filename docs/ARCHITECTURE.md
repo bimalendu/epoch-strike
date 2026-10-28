@@ -407,6 +407,21 @@ still comes from `world.fxRand`.
   once per save (`save.data.hints`, `markHint`/`hintSeen`), waits while a tutorial prompt or the level card is up, and uses the
   prompt banner. `{switch}`-style tokens are filled in with the current device's button names. Add new ones at `<<HINTS>>`.
 
+**Accessibility and display options** (Options screen, saved in `save.data.options`; a save without them gets the defaults).
+* **FLASHES: FULL / REDUCED** (`flashes`). `World.flashesReduced` is read only by the art and the camera: the smart bomb is a soft
+  wash (at most 25% white) instead of a white-out, a hit flash is the sprite with its white copy faded over it (half as white),
+  the red hurt flash after a death is off, the camera shakes half as hard, and every large-area blink goes through
+  `flick(t, rate)` (`art/flash.js`), which caps it at 6 steps a second (three flashes a second, the usual photosensitivity limit).
+  `renderWorld` sets the mode at the start of each frame. A new painter that blinks faster than that should call `flick`. Small
+  sprite flicker (muzzle flashes, bullet shimmer) is not covered, and neither is hit-stop. SCREEN SHAKE stays an ON/OFF switch.
+* **HUD SIZE: NORMAL / LARGE** (`hud`). `drawCorners` lays the lives/bombs/medals, score and weapon clusters out in
+  `VIEW_W / k` and draws them under `ctx.scale(k, k)`, so large is a plain 2x of the same code. Large drops the HI line and shows
+  the combo multiplier beside the score, and the boss bar is 150 px wide instead of 220 so it fits between the bigger corners.
+  Toasts rest at y 64 (they would sit on the clusters at 36).
+* **CRT FILTER: OFF / SCANLINES** (`crt`). A CSS overlay (`body.crt #stage::after` in `style.css`), never drawn on the canvas, so
+  screenshots and tests are unchanged. `Game.applyDisplay()` calls `game.onDisplay(options)`, which `main.js` uses to toggle the
+  class; `fit()` sets `--crt-px` and `--crt-top` so a dark line sits at the bottom of every game pixel row.
+
 ## Dev tools
 
 * `npm run shots` - menu, play, pause, results... into `docs/screenshots`.

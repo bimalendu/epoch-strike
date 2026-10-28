@@ -61,6 +61,7 @@ export class Camera {
 
   shake(mag = 3, time = 0.25) {
     if (this.world && this.world.shakeEnabled === false) return;
+    if (this.world && this.world.flashesReduced) mag *= 0.5;
     this.shakeMag = Math.max(this.shakeMag * (this.shakeT > 0 ? 1 : 0), mag);
     this.shakeT = Math.max(this.shakeT, time);
   }

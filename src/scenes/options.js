@@ -44,6 +44,14 @@ export class OptionsScene {
       if (game.input.setTouchMode) game.input.setTouchMode(mode);
     };
     const toggleFx = () => save.setOption('fx', save.options.fx === 'low' ? 'high' : 'low');
+    // two-way choices that change what is drawn: FLASHES, HUD SIZE, CRT FILTER
+    const pick = (key, a, b) => () => {
+      save.setOption(key, save.options[key] === a ? b : a);
+      game.applyDisplay();
+    };
+    const toggleFlashes = pick('flashes', 'full', 'reduced');
+    const toggleHud = pick('hud', 'normal', 'large');
+    const toggleCrt = pick('crt', 'off', 'scanlines');
     this.menu = new Menu(
       [
         { label: () => `SFX    ${bar(save.options.sfx)}`, onLeft: step('sfx', -0.1), onRight: step('sfx', 0.1) },
@@ -62,9 +70,12 @@ export class OptionsScene {
         },
         { label: () => `EFFECTS  ${save.options.fx.toUpperCase()}`, onLeft: toggleFx, onRight: toggleFx, onSelect: toggleFx },
         { label: () => `TOUCH BUTTONS  ${save.options.touch.toUpperCase()}`, onLeft: cycleTouch(-1), onRight: cycleTouch(1), onSelect: cycleTouch(1) },
+        { label: () => `FLASHES  ${save.options.flashes.toUpperCase()}`, onLeft: toggleFlashes, onRight: toggleFlashes, onSelect: toggleFlashes },
+        { label: () => `HUD SIZE  ${save.options.hud.toUpperCase()}`, onLeft: toggleHud, onRight: toggleHud, onSelect: toggleHud },
+        { label: () => `CRT FILTER  ${save.options.crt.toUpperCase()}`, onLeft: toggleCrt, onRight: toggleCrt, onSelect: toggleCrt },
         { label: 'BACK', onSelect: () => this.close() },
       ],
-      { x: VIEW_W / 2, y: 66, gap: 17 },
+      { x: VIEW_W / 2, y: 56, gap: 14 },
     );
   }
 
@@ -81,11 +92,11 @@ export class OptionsScene {
 
   draw(ctx) {
     drawBackdrop(ctx, this.t, { rifts: false });
-    drawText(ctx, 'OPTIONS', VIEW_W / 2, 36, '#ffd23a', 3, 'center', '#7a1c1c');
+    drawText(ctx, 'OPTIONS', VIEW_W / 2, 22, '#ffd23a', 3, 'center', '#7a1c1c');
     this.menu.draw(ctx);
     const d = this.game.save.options.difficulty;
-    drawText(ctx, DIFF_NOTE[d], VIEW_W / 2, 200, '#9aa4b8', 1, 'center', '#000000');
-    drawText(ctx, 'DIFFICULTY AND EFFECTS APPLY TO NEW RUNS', VIEW_W / 2, 214, '#6a6a86', 1, 'center');
+    drawText(ctx, DIFF_NOTE[d], VIEW_W / 2, 206, '#9aa4b8', 1, 'center', '#000000');
+    drawText(ctx, 'DIFFICULTY, EFFECTS AND FLASHES APPLY TO NEW RUNS', VIEW_W / 2, 220, '#6a6a86', 1, 'center');
     drawText(ctx, 'F FULLSCREEN   M MUTE', VIEW_W / 2, 242, '#6a6a86', 1, 'center');
   }
 }

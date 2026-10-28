@@ -19,6 +19,7 @@ export class Game {
     this.frame = 0;
     this.routes = {}; // name -> (params) => scene; registered by main.js (or tests)
     this.muted = false;
+    this.onDisplay = null; // the page hooks this to apply the display options (the CRT filter) outside the canvas
   }
 
   /** M: silence everything without touching the saved volumes; press again to bring the sound back. */
@@ -26,6 +27,11 @@ export class Game {
     this.muted = !this.muted;
     this.applyVolumes();
     return this.muted;
+  }
+
+  /** Tell the page to show the display options as saved (called at start and whenever one changes). */
+  applyDisplay() {
+    if (this.onDisplay) this.onDisplay(this.save.options);
   }
 
   applyVolumes() {

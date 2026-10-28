@@ -3,6 +3,7 @@
 
 import { shade } from './common.js';
 import { brush, bossFrames } from './bosses.js';
+import { flick } from './flash.js';
 
 const IRON = '#aab2c0';
 const BRASS = '#c8a040';
@@ -17,7 +18,7 @@ function drawLocomotive(ctx, e, cx, cy, pose) {
   const { atk, state, tele } = pose;
   const act = state === 'tele' || state === 'attack';
   const open = e.def.weakBox(e) !== null;
-  const flash = tele > 0.5 && Math.floor(t * 10) % 2 === 0;
+  const flash = tele > 0.5 && flick(t, 10) % 2 === 0;
   const plate = pose.rage ? '#3a2c30' : '#2e3038';
   const plateD = shade(plate, -0.45);
   const plateL = shade(plate, 0.4);
@@ -160,7 +161,7 @@ function drawFurnace(ctx, e, cx, cy, pose) {
   const { atk, state, tele } = pose;
   const act = state === 'tele' || state === 'attack';
   const open = e.def.weakBox(e) !== null;
-  const flash = tele > 0.5 && Math.floor(t * 10) % 2 === 0;
+  const flash = tele > 0.5 && flick(t, 10) % 2 === 0;
   const hull = pose.rage ? '#5a3a34' : '#4a4e5c';
   const hullD = shade(hull, -0.45);
   const hullL = shade(hull, 0.35);
@@ -279,7 +280,7 @@ function drawZeppelin(ctx, e, cx, cy, pose) {
   const { atk, state, tele } = pose;
   const act = state === 'tele' || state === 'attack';
   const open = e.def.weakBox(e) !== null;
-  const flash = tele > 0.5 && Math.floor(t * 10) % 2 === 0;
+  const flash = tele > 0.5 && flick(t, 10) % 2 === 0;
   const canvas = pose.rage ? '#7a6a66' : '#8a8e90';
   const canvasD = shade(canvas, -0.35);
   const canvasL = shade(canvas, 0.3);

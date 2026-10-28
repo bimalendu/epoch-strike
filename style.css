@@ -100,3 +100,15 @@ html, body {
   right: max(12px, env(safe-area-inset-right));
   top: max(12px, env(safe-area-inset-top));
 }
+
+/* ---------- CRT filter (Options -> CRT FILTER): the bottom of every game pixel row is a little darker.
+   main.js sets --crt-px (CSS pixels per game pixel) and --crt-top (where the canvas starts) so the lines sit on the pixel grid. */
+body.crt #stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.24) 70%, rgba(0, 0, 0, 0.24) 100%);
+  background-size: 100% var(--crt-px, 3px);
+  background-position: 0 var(--crt-top, 0px);
+}

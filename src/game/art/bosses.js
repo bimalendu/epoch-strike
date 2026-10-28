@@ -5,6 +5,7 @@
 import { Painter, lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
 import { flashCtx } from './hit.js';
+import { flick } from './flash.js';
 
 export function brush(ctx, cx, cy, face) {
   const mx = (lx, w = 0) => Math.round(face > 0 ? cx + lx : cx - lx - w);
@@ -136,7 +137,7 @@ function drawTrex(ctx, e, cx, cy, pose) {
     B.r(20 + i * 5, hy + 16, 2, 3, WHITE);
     B.r(22 + i * 5, hy + 14 + mouth + 2, 2, 3, WHITE);
   }
-  const eyeFlash = atk === 'charge' && state === 'tele' && Math.floor(tele * 12) % 2 === 0;
+  const eyeFlash = atk === 'charge' && state === 'tele' && flick(tele, 12) % 2 === 0;
   B.r(34, hy + 3, 6, 5, eyeFlash ? '#ffffff' : pose.rage || atk === 'charge' ? '#ff3a3a' : '#ffd23a');
   B.r(37, hy + 4, 2, 3, '#111111');
   if (atk === 'spit' && (state === 'tele' || state === 'attack')) {
@@ -146,7 +147,7 @@ function drawTrex(ctx, e, cx, cy, pose) {
   // belly core: armoured plate when closed, pulsing when open
   const open = e.def.weakBox(e) !== null;
   if (open) {
-    const pulse = Math.floor(e.bs.age * 8) % 2;
+    const pulse = flick(e.bs.age, 8) % 2;
     B.r(8, -38, 22, 26, '#3a0a4a');
     B.r(10, -36, 18, 22, pulse ? '#ff4adc' : '#ff80ea');
     B.r(14, -31, 10, 12, '#ffffff');
@@ -194,9 +195,9 @@ function drawGolem(ctx, e, cx, cy, pose) {
   // furnace door (the weak point)
   const open = e.def.weakBox(e) !== null;
   if (open) {
-    const flick = Math.floor(e.bs.age * 10) % 2;
+    const lick = flick(e.bs.age, 10) % 2;
     B.r(8, -46 - bob, 22, 30, '#2a0a06');
-    B.r(10, -44 - bob, 18, 26, flick ? '#ff8a1e' : '#ffb03a');
+    B.r(10, -44 - bob, 18, 26, lick ? '#ff8a1e' : '#ffb03a');
     B.r(13, -40 - bob, 12, 18, '#ffe27a');
     B.r(16, -36 - bob, 6, 10, '#ffffff');
     B.r(8, -48 - bob, 22, 3, rock);
@@ -229,7 +230,7 @@ function drawGolem(ctx, e, cx, cy, pose) {
   B.r(-8, -98 - bob, 26, 3, light);
   B.r(-10, -104 - bob, 6, 8, dark);
   B.r(14, -104 - bob, 6, 8, dark);
-  const eye = state === 'tele' ? (Math.floor(tele * 12) % 2 ? '#ffffff' : '#ffd23a') : '#ffd23a';
+  const eye = state === 'tele' ? (flick(tele, 12) % 2 ? '#ffffff' : '#ffd23a') : '#ffd23a';
   B.r(-1, -92 - bob, 6, 4, eye);
   B.r(9, -92 - bob, 6, 4, eye);
   B.r(2, -84 - bob, 10, 2, lava);
@@ -288,7 +289,7 @@ function drawMammoth(ctx, e, cx, cy, pose) {
   // belly hatch (weak point)
   const open = e.def.weakBox(e) !== null;
   if (open) {
-    const pulse = Math.floor(e.bs.age * 8) % 2;
+    const pulse = flick(e.bs.age, 8) % 2;
     B.r(6, -42 - bob, 28, 30, '#0a2a3a');
     B.r(8, -40 - bob, 24, 26, pulse ? '#5ad8ff' : '#9ae8ff');
     B.r(14, -34 - bob, 12, 14, '#ffffff');
@@ -305,7 +306,7 @@ function drawMammoth(ctx, e, cx, cy, pose) {
   B.r(38, hy - bob, 34, 3, shade(fur, 0.2));
   B.r(44, hy - 8 - bob, 22, 10, ice);
   B.r(44, hy - 8 - bob, 22, 2, '#ffffff');
-  const eyeFlash = atk === 'charge' && state === 'tele' && Math.floor(tele * 12) % 2 === 0;
+  const eyeFlash = atk === 'charge' && state === 'tele' && flick(tele, 12) % 2 === 0;
   B.r(56, hy + 8 - bob, 5, 5, eyeFlash ? '#ffffff' : pose.rage || atk === 'charge' ? '#ff3a3a' : '#ffd23a');
   B.r(58, hy + 9 - bob, 2, 3, '#111111');
   const tuskGlow = atk === 'charge' && state === 'tele' ? glow : '#f4f0dc';
@@ -390,10 +391,10 @@ function drawBear(ctx, e, cx, cy, pose) {
     B.r(42, hy + 21 - bob, 2, 2, WHITE);
     B.r(48, hy + 21 - bob, 2, 2, WHITE);
   }
-  const eyeFlash = atk === 'lunge' && state === 'tele' && Math.floor(tele * 12) % 2 === 0;
+  const eyeFlash = atk === 'lunge' && state === 'tele' && flick(tele, 12) % 2 === 0;
   B.r(33, hy + 6 - bob, 5, 4, eyeFlash ? '#ffffff' : pose.rage || atk === 'lunge' ? '#ff3a3a' : glow);
   // the hive: purple pods crowning the shoulders, bright and swollen when open
-  const pulse = Math.floor((e.bs ? e.bs.age : 0) * 8) % 2;
+  const pulse = flick((e.bs ? e.bs.age : 0), 8) % 2;
   const hy0 = -64 - rear * 0.6 + crouch;
   B.r(-2, hy0 + 10 - bob, 34, 14, shade(hive, -0.35));
   for (const [x, y, rw] of [[0, 8, 11], [10, 0, 13], [22, 6, 10], [13, 10, 9], [4, 14, 8]]) {
@@ -479,7 +480,7 @@ function drawSphinx(ctx, e, cx, cy, pose) {
   // eyes with kohl; Rift light, red when enraged, a white blink while it winds up
   const eye = pose.rage || atk === 'pounce' ? '#ff3a3a' : '#ff4adc';
   B.r(29, hy + 18, 9, 4, '#14141c');
-  B.r(32, hy + 19, 5, 2, state === 'tele' && Math.floor(tele * 14) % 2 === 0 ? '#ffffff' : eye);
+  B.r(32, hy + 19, 5, 2, state === 'tele' && flick(tele, 14) % 2 === 0 ? '#ffffff' : eye);
   B.r(21, hy + 18, 4, 4, dark);
   // mouth and the false beard
   if (mouth) {
@@ -492,7 +493,7 @@ function drawSphinx(ctx, e, cx, cy, pose) {
   B.r(36, hy + 40, 7, 14, blue);
   B.r(36, hy + 40, 7, 2, gold);
   // the brow gem (the weak point): dull blue-grey when closed, blazing pink-white when open
-  const pulse = Math.floor((e.bs ? e.bs.age : 0) * 9) % 2;
+  const pulse = flick((e.bs ? e.bs.age : 0), 9) % 2;
   B.r(26, hy - 5, 8, 10, '#14141c'); // its setting
   B.r(27, hy - 4, 6, 8, open ? (pulse ? '#ff9af0' : '#ff4adc') : '#5a6a8a');
   B.r(28, hy - 3, 3, 3, open ? '#ffffff' : '#9aaac8');
@@ -523,7 +524,7 @@ function drawColossus(ctx, e, cx, cy, pose) {
   if (act && atk === 'hail') armsUp = state === 'tele' ? Math.round(30 * tele) : 30;
   if (state === 'phase') armsUp = 34;
   const open = e.def.weakBox(e) !== null;
-  const pulse = Math.floor((e.bs ? e.bs.age : 0) * 9) % 2;
+  const pulse = flick((e.bs ? e.bs.age : 0), 9) % 2;
 
   // far shield, behind the body
   B.disc(-30, -74 + kneel, 13, dark);
@@ -591,7 +592,7 @@ function drawColossus(ctx, e, cx, cy, pose) {
   for (let i = 0; i < 8; i++) B.r(-4 + i * 2, hy - (i & 1) * 3 - 2, 2, 5 + (i & 1) * 3, '#c0262e');
   const eye = pose.rage ? '#ff3a3a' : '#ff4adc';
   B.r(6, hy + 16, 10, 3, '#14141c');
-  B.r(9, hy + 16, 6, 3, state === 'tele' && Math.floor(tele * 14) % 2 === 0 ? '#ffffff' : eye);
+  B.r(9, hy + 16, 6, 3, state === 'tele' && flick(tele, 14) % 2 === 0 ? '#ffffff' : eye);
 }
 
 // ---- Chariot Champion ----
@@ -610,7 +611,7 @@ function drawChampion(ctx, e, cx, cy, pose) {
   const rear = act && atk === 'charge' && state === 'tele' ? Math.round(14 * tele) : cs && cs.mode === 'turn' ? 8 : 0;
   const gallop = running ? Math.floor(e.x / 9) % 2 : walkPhase(e);
   const open = e.def.weakBox(e) !== null;
-  const pulse = Math.floor((e.bs ? e.bs.age : 0) * 9) % 2;
+  const pulse = flick((e.bs ? e.bs.age : 0), 9) % 2;
 
   // two horses abreast (the far one darker), legs galloping
   for (const off of [-6, 0]) {
@@ -788,7 +789,7 @@ function drawDragonKite(ctx, e, cx, cy, pose) {
   }
   // the pearl: bright and pulsing when the weak point is open, hidden behind a gold plate when shut
   if (open) {
-    const pulse = Math.floor(t * 9) % 2;
+    const pulse = flick(t, 9) % 2;
     ctx.globalAlpha = 0.2;
     B.disc(40, -36 + hy, 16, pulse ? '#ff9af0' : '#ff4adc');
     ctx.globalAlpha = 1;
@@ -857,7 +858,7 @@ function drawKraken(ctx, e, cx, cy, pose) {
   B.r(-38, -72 + duck, 6, 8, body);
   // the eye
   if (open) {
-    const pulse = Math.floor(t * 9) % 2;
+    const pulse = flick(t, 9) % 2;
     ctx.globalAlpha = 0.2;
     B.disc(20, -60 + duck, 22, pulse ? '#ff9af0' : '#ff4adc');
     ctx.globalAlpha = 1;

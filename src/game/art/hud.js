@@ -63,7 +63,7 @@ function build() {
     p.ctx.globalAlpha = 1;
     return p.canvas;
   };
-  plates = { left: plate(84, 27), leftTall: plate(84, 38), score: plate(84, 24), scoreTall: plate(84, 34), slots: plate(44, 22) };
+  plates = { left: plate(80, 27), leftTall: plate(80, 38), score: plate(72, 24), scoreTall: plate(72, 34), scoreOne: plate(72, 14), slots: plate(44, 22) };
 }
 
 /** Paint the HUD icons now instead of at the first frame of a level. */
@@ -134,28 +134,21 @@ function drawCard(ctx, c) {
   ctx.globalAlpha = 1;
 }
 
-/**
- * `extra` is what the scene knows and the world does not: { prompt, card: {t, total, title, subtitle, number},
- * weaponLabel: {text, color, t}, intro (0..1: how far into a boss's entrance), trail (the boss bar's damage trail, in hp) }.
- */
-export function drawHud(ctx, world, run, extra = {}) {
-  if (!icons) build();
+/** The three corner clusters: lives, bombs, medals and ride armour on the left, the score in the middle, weapons on the right. */
+function drawCorners(ctx, world, run, extra, k) {
   const p = world.player;
   const lives = run ? run.lives.lives : 3;
-  const boss = world.boss;
-  // boss entrance: letterbox bars close in from the top and bottom (drawn first, so the HUD sits on them)
-  const intro = boss && boss.bs ? extra.intro || 0 : 0;
-  if (intro > 0.01) {
-    const bar = Math.round(12 * ease(intro));
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, VIEW_W, bar);
-    ctx.fillRect(0, VIEW_H - bar, VIEW_W, bar);
-  }
+  const vw = VIEW_W / k; // the width these clusters are laid out in
+  ctx.save();
+  if (k > 1) ctx.scale(k, k);
   // plates
   const hasRide = p.mode === 'tank' || p.mode === 'fly';
   ctx.drawImage(hasRide ? plates.leftTall : plates.left, 2, 2);
-  if (run) ctx.drawImage(run.score.combo >= 2 && world.time - run.score.lastKill < 1.0 ? plates.scoreTall : plates.score, Math.round(VIEW_W / 2 - 42), 2);
-  ctx.drawImage(plates.slots, VIEW_W - 5 - 38 - 2, 2);
+  if (run) {
+    const combo = run.score.combo >= 2 && world.time - run.score.lastKill < 1.0;
+    ctx.drawImage(k > 1 ? plates.scoreOne : combo ? plates.scoreTall : plates.score, Math.round(vw / 2 - 36), 2);
+  }
+  ctx.drawImage(plates.slots, vw - 5 - 38 - 2, 2);
   // lives: six slots, filled vs empty, so the cap is always visible; the last life bobs
   for (let i = 0; i < LIVES.MAX; i++) {
     const last = lives === 1 && i === 0 && Math.floor(world.time * 4) % 2 === 0;
@@ -193,36 +186,59 @@ export function drawHud(ctx, world, run, extra = {}) {
     ctx.fillRect(38, 23, 5, 1);
     drawText(ctx, `${run.lives.medalProgress}/10`, 46, 18, '#ffe9a0', 1, 'left', '#000000');
   }
-  // score and high score
+  // score and high score (large: just the score, with the combo multiplier beside it)
   if (run) {
-    drawText(ctx, String(run.score.points).padStart(7, '0'), VIEW_W / 2, 5, '#ffffff', 1, 'center', '#000000');
-    drawText(ctx, `HI ${String(run.score.hi).padStart(7, '0')}`, VIEW_W / 2, 15, '#9aa4b8', 1, 'center', '#000000');
-    if (run.score.combo >= 2 && world.time - run.score.lastKill < 1.0) {
-      drawText(ctx, `COMBO X${run.score.multiplier.toFixed(1)}`, VIEW_W / 2, 25, '#ffd23a', 1, 'center', '#000000');
+    const combo = run.score.combo >= 2 && world.time - run.score.lastKill < 1.0;
+    const score = String(run.score.points).padStart(7, '0');
+    if (k > 1) {
+      drawText(ctx, combo ? `${score} X${run.score.multiplier.toFixed(1)}` : score, vw / 2, 5, '#ffffff', 1, 'center', '#000000');
+    } else {
+      drawText(ctx, score, vw / 2, 5, '#ffffff', 1, 'center', '#000000');
+      drawText(ctx, `HI ${String(run.score.hi).padStart(7, '0')}`, vw / 2, 15, '#9aa4b8', 1, 'center', '#000000');
+      if (combo) drawText(ctx, `COMBO X${run.score.multiplier.toFixed(1)}`, vw / 2, 25, '#ffd23a', 1, 'center', '#000000');
     }
   }
   // carried weapons (active one is outlined)
   for (let i = 0; i < 2; i++) {
-    ctx.drawImage(slotIcon(p.slots[i], i === p.slot), VIEW_W - 5 - 17 * (2 - i) - (2 - i - 1) * 2, 4);
+    ctx.drawImage(slotIcon(p.slots[i], i === p.slot), vw - 5 - 17 * (2 - i) - (2 - i - 1) * 2, 4);
   }
   // the weapon you just picked up or switched to, named for a moment; then the rapid / barrier status below it
   const wl = extra.weaponLabel;
   if (wl && wl.t > 0) {
     ctx.globalAlpha = Math.min(1, wl.t / 0.3);
-    drawText(ctx, wl.text, VIEW_W - 5, 25, wl.color, 1, 'right', '#000000');
+    drawText(ctx, wl.text, vw - 5, 25, wl.color, 1, 'right', '#000000');
     ctx.globalAlpha = 1;
   }
-  if (p.rapid) drawText(ctx, 'RAPID', VIEW_W - 5, 35, '#ff9a1e', 1, 'right', '#000000');
+  if (p.rapid) drawText(ctx, 'RAPID', vw - 5, 35, '#ff9a1e', 1, 'right', '#000000');
   if (p.barrier > 0) {
     ctx.fillStyle = '#000000';
-    ctx.fillRect(VIEW_W - 5 - 36, 45, 37, 5);
+    ctx.fillRect(vw - 5 - 36, 45, 37, 5);
     ctx.fillStyle = '#4aa8ff';
-    ctx.fillRect(VIEW_W - 5 - 35, 46, Math.round((35 * p.barrier) / PICKUP_RULES.BARRIER_SECONDS), 3);
+    ctx.fillRect(vw - 5 - 35, 46, Math.round((35 * p.barrier) / PICKUP_RULES.BARRIER_SECONDS), 3);
   }
+  ctx.restore();
+}
+
+/**
+ * `extra` is what the scene knows and the world does not: { prompt, card: {t, total, title, subtitle, number},
+ * weaponLabel: {text, color, t}, intro (0..1: how far into a boss's entrance), trail (the boss bar's damage trail, in hp) }.
+ */
+export function drawHud(ctx, world, run, extra = {}) {
+  if (!icons) build();
+  const boss = world.boss;
+  // boss entrance: letterbox bars close in from the top and bottom (drawn first, so the HUD sits on them)
+  const intro = boss && boss.bs ? extra.intro || 0 : 0;
+  if (intro > 0.01) {
+    const bar = Math.round(12 * ease(intro));
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, VIEW_W, bar);
+    ctx.fillRect(0, VIEW_H - bar, VIEW_W, bar);
+  }
+  drawCorners(ctx, world, run, extra, extra.large ? 2 : 1);
   // boss: health bar with phase ticks (and a trail where the last hits took it from), the entrance plate and WARNING
   if (boss && boss.bs) {
     const bs = boss.bs;
-    const bw = 220;
+    const bw = extra.large ? 150 : 220; // the larger corners leave less room between them
     const bx = Math.round((VIEW_W - bw) / 2);
     const by = 36;
     ctx.fillStyle = '#000000';

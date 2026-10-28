@@ -3,6 +3,7 @@
 
 import { shade } from './common.js';
 import { brush, bossFrames } from './bosses.js';
+import { flick } from './flash.js';
 
 const NEON = '#ff4ad8';
 const CYAN = '#4af0ff';
@@ -24,7 +25,7 @@ function drawSiloMech(ctx, e, cx, cy, pose) {
   const frame = Math.floor(e.anim) % 4;
   const bob = walking && frame % 2 === 1 ? 1 : 0;
   const meltdown = atk === 'meltdown' && act;
-  const flashRed = (meltdown || (atk === 'salvo' && state === 'tele')) && Math.floor(t * 10) % 2 === 0;
+  const flashRed = (meltdown || (atk === 'salvo' && state === 'tele')) && flick(t, 10) % 2 === 0;
 
   // ---- legs: the front one lifts for a stomp
   const la = walking ? [-3, 0, 3, 0][frame] : 0;
@@ -122,7 +123,7 @@ function drawSiloMech(ctx, e, cx, cy, pose) {
   }
   // ---- meltdown: glowing seams all over the hull
   if (meltdown) {
-    for (const sy2 of [-100, -86, -70]) B.r(-34, sy2 - bob, 4, 1, Math.floor(t * 14) % 2 ? '#ff9a3a' : '#ff3a2a');
+    for (const sy2 of [-100, -86, -70]) B.r(-34, sy2 - bob, 4, 1, flick(t, 14) % 2 ? '#ff9a3a' : '#ff3a2a');
     for (const sy2 of [-96, -80]) B.r(28, sy2 - bob, 6, 1, '#ff9a3a');
   }
 }
@@ -287,7 +288,7 @@ function drawHydra(ctx, e, cx, cy, pose) {
     }
     if (i === stuck) {
       // the stuck head sparks
-      if (Math.floor(t * 12) % 2 === 0) B.r(hx - 14, hy - 12, 4, 2, '#ffe27a');
+      if (flick(t, 12) % 2 === 0) B.r(hx - 14, hy - 12, 4, 2, '#ffe27a');
       B.r(hx + 6, hy - 11, 3, 3, '#ffe27a');
     }
   }

@@ -51,6 +51,7 @@ export class World {
     this.alarmCool = 0; // seconds before another alarm can ring
     this.god = !!opts.god;
     this.shakeEnabled = opts.shake !== false;
+    this.flashesReduced = opts.flashes === 'reduced'; // the Options choice: soft flashes, slower blinks, no red hurt flash, half the shake
 
     this.diffName = opts.difficulty || 'normal';
     this.diff = DIFFICULTY[this.diffName] || DIFFICULTY.normal;

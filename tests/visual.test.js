@@ -35,6 +35,8 @@ import { SaveData, MemoryStorage, SAVE_KEY } from '../src/game/save.js';
 import { levelProgress } from '../src/game/progress.js';
 import { buildLevel, levelCount } from '../src/game/levels.js';
 import { VIEW_W, VIEW_H } from '../src/game/constants.js';
+import { setReducedFlashes, flick } from '../src/game/art/flash.js';
+import { readFileSync } from 'node:fs';
 
 /** Total brightness and number of visible pixels of a canvas. */
 function measure(c) {
@@ -493,4 +495,155 @@ test('play scene: the boss entrance and damage trail follow the boss, and are go
   w.boss = null;
   scene.updateHudState(w, 1 / 60);
   assert.equal(scene.trail, 0);
+});
+
+// ---- accessibility and display options ----
+
+test('options: FLASHES, HUD SIZE and CRT FILTER default off, change with the keys, persist and reach the page', () => {
+  const { game } = makeGame();
+  registerRoutes(game);
+  const seen = [];
+  game.onDisplay = (o) => seen.push(`${o.flashes}/${o.hud}/${o.crt}`);
+  game.go('options', { back: 'menu' });
+  stepN(game, 2);
+  const tap = (k) => { stepN(game, 1, [k]); stepN(game, 1); };
+  const labels = () => game.scene.menu.items.map((it) => (typeof it.label === 'function' ? it.label() : it.label));
+  for (const l of ['FLASHES  FULL', 'HUD SIZE  NORMAL', 'CRT FILTER  OFF']) assert.ok(labels().includes(l), l);
+  const goTo = (prefix) => { while (!labels()[game.scene.menu.index].startsWith(prefix)) tap('down'); };
+  goTo('FLASHES');
+  tap('right');
+  assert.equal(game.save.options.flashes, 'reduced');
+  tap('confirm');
+  assert.equal(game.save.options.flashes, 'full');
+  tap('left');
+  assert.equal(game.save.options.flashes, 'reduced');
+  goTo('HUD SIZE');
+  tap('right');
+  assert.equal(game.save.options.hud, 'large');
+  goTo('CRT FILTER');
+  tap('confirm');
+  assert.equal(game.save.options.crt, 'scanlines');
+  assert.equal(seen[seen.length - 1], 'reduced/large/scanlines', 'the page is told after every change');
+  assert.ok(labels().includes('CRT FILTER  SCANLINES'));
+  game.render(); // ten rows and the notes all fit and draw
+  // saved, and rubbish or missing values fall back to the defaults
+  const reloaded = new SaveData(game.save.storage);
+  assert.deepEqual([reloaded.options.flashes, reloaded.options.hud, reloaded.options.crt], ['reduced', 'large', 'scanlines']);
+  const raw = JSON.parse(game.save.storage.getItem(SAVE_KEY));
+  Object.assign(raw.options, { flashes: 'strobe', hud: 3, crt: null });
+  const st = new MemoryStorage();
+  st.setItem(SAVE_KEY, JSON.stringify(raw));
+  const junk = new SaveData(st);
+  assert.deepEqual([junk.options.flashes, junk.options.hud, junk.options.crt], ['full', 'normal', 'off']);
+  delete raw.options.flashes; delete raw.options.hud; delete raw.options.crt;
+  st.setItem(SAVE_KEY, JSON.stringify(raw));
+  assert.equal(new SaveData(st).options.flashes, 'full', 'a save from before these options');
+  assert.doesNotThrow(() => makeGame().game.applyDisplay(), 'no page hook, no problem');
+});
+
+test('the CRT overlay is a page-level style that never touches the canvas', () => {
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  assert.match(css, /body\.crt #stage::after/);
+  assert.match(css, /pointer-events: none/);
+  assert.match(css, /--crt-px/);
+});
+
+test('reduced flashes: the bomb white-out becomes a soft wash', () => {
+  const shot = (flashes) => {
+    const w = flatWorld('jungle', { flashes });
+    w.bombFlash = 0.5;
+    return renderAt(w);
+  };
+  const full = shot('full');
+  const soft = shot('reduced');
+  const at = (c) => c.data[(135 * 480 + 240) * 4];
+  assert.ok(at(full) > 215, `a full flash is nearly white (${at(full)})`);
+  assert.ok(at(soft) < 205 && at(soft) > 0, `a reduced one is a tint (${at(soft)})`);
+});
+
+test('reduced flashes: hits flash half as white, and telegraph blinks run at three flashes a second at most', () => {
+  const def = ENEMY_DEFS.trooper;
+  try {
+    setReducedFlashes(false);
+    const calm = drawDef(def, 0).sum;
+    const full = drawDef(def, 0.11).sum;
+    setReducedFlashes(true);
+    const soft = drawDef(def, 0.11).sum;
+    assert.ok(calm < soft && soft < full, `${calm} < ${soft} < ${full}`);
+    assert.equal(drawDef(def, 0.11).px, drawDef(def, 0).px, 'the outline is the same');
+    assert.equal(flick(1, 14), 6, 'a 14-step blink is capped at 6 steps a second');
+    assert.equal(flick(1, 4), 4, 'a slow one is left alone');
+    setReducedFlashes(false);
+    assert.equal(flick(1, 14), 14);
+  } finally {
+    setReducedFlashes(false);
+  }
+});
+
+test('reduced flashes: no red hurt flash, and the camera shakes half as hard', () => {
+  const dead = (flashes) => {
+    const w = flatWorld('jungle', { flashes });
+    w.killPlayer('test');
+    w.deathT = 0.05;
+    const a = renderAt(w);
+    w.deathT = 2;
+    return { a, b: renderAt(w) };
+  };
+  const full = dead('full');
+  assert.notDeepEqual(Buffer.from(full.a.data), Buffer.from(full.b.data), 'full: the flash shows');
+  const soft = dead('reduced');
+  assert.deepEqual(Buffer.from(soft.a.data), Buffer.from(soft.b.data), 'reduced: nothing to see');
+  const shake = (flashes) => {
+    const w = flatWorld('jungle', { flashes });
+    w.camera.shake(6, 0.5);
+    return w.camera.shakeMag;
+  };
+  assert.equal(shake('full'), 6);
+  assert.equal(shake('reduced'), 3);
+  const off = flatWorld('jungle', { flashes: 'reduced', shake: false });
+  off.camera.shake(6, 0.5);
+  assert.equal(off.camera.shakeT, 0, 'shake OFF still means off');
+});
+
+test('reduced flashes and the HUD size reach the play scene from the saved options', () => {
+  const { game } = makeGame();
+  registerRoutes(game);
+  game.save.setOption('flashes', 'reduced');
+  game.go('play', { run: new Run(), levelIndex: -1, god: true });
+  stepN(game, 1);
+  assert.equal(game.scene.world.flashesReduced, true);
+  const { game: g2 } = makeGame();
+  registerRoutes(g2);
+  g2.go('play', { run: new Run(), levelIndex: -1, god: true });
+  stepN(g2, 1);
+  assert.equal(g2.scene.world.flashesReduced, false);
+});
+
+test('large HUD: the corner clusters are drawn twice the size, and the boss bar makes room', () => {
+  const w = new World(buildLevel(1), {});
+  const run = new Run();
+  const hud = (extra, world = w) => {
+    const c = whiteCanvas();
+    drawHud(c.getContext('2d'), world, run, extra);
+    return c;
+  };
+  const normal = hud({});
+  const large = hud({ large: true });
+  assert.equal(colourAt(normal, 150, 40), '#ffffff', 'normal: nothing out here');
+  assert.notEqual(colourAt(large, 150, 40), '#ffffff', 'large: the left plate reaches this far');
+  assert.notEqual(colourAt(large, 440, 40), '#ffffff', 'and the weapon slots');
+  const inked = (c) => { let n = 0; for (let i = 0; i < c.data.length; i += 4) if (c.data[i] < 250) n++; return n; };
+  assert.ok(inked(large) > inked(normal) * 2, `a good deal more of the screen is covered (${inked(normal)} -> ${inked(large)})`);
+  // the boss bar is narrower so it fits between the corners
+  const boss = { maxHp: 80, echo: false, def: { name: 'REX-7', phases: [{ hp: 1 }] }, bs: { state: 'idle', age: 5, shownHp: 80, phase: 0 } };
+  const bw = { ...w, boss, player: w.player };
+  assert.notEqual(colourAt(hud({}, bw), 340, 38), '#ffffff', 'normal: the bar runs this far');
+  assert.equal(colourAt(hud({ large: true }, bw), 340, 38), '#ffffff', 'large: it stops short of here');
+  // large mode shows the combo multiplier beside the score instead of a second line
+  for (let i = 0; i < 4; i++) run.score.addKill(100, w.time);
+  assert.ok(run.score.combo >= 2);
+  const during = hud({ large: true });
+  w.time += 5; // the combo window has closed: the same score, no multiplier
+  const after = hud({ large: true });
+  assert.notDeepEqual(Buffer.from(during.data), Buffer.from(after.data), 'the multiplier is drawn beside the score while the combo lasts');
 });

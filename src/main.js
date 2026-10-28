@@ -18,6 +18,11 @@ input.attach(window, document);
 
 const game = new Game({ canvas, input, audio, save: new SaveData() });
 registerRoutes(game);
+// the CRT filter is a CSS overlay on the page (the canvas itself is never touched)
+game.onDisplay = (o) => {
+  if (document.body && document.body.classList) document.body.classList.toggle('crt', o.crt === 'scanlines');
+};
+game.applyDisplay();
 game.go('title');
 
 // F: fullscreen (not on iOS Safari, which has none), M: mute
@@ -42,6 +47,12 @@ function fit() {
   const scale = raw >= 1 / dpr + 1 ? Math.floor(raw * dpr) / dpr : raw;
   canvas.style.width = `${VIEW_W * scale}px`;
   canvas.style.height = `${VIEW_H * scale}px`;
+  // the CRT filter's scanlines follow the game's pixel grid
+  const root = document.documentElement;
+  if (root && root.style && root.style.setProperty) {
+    root.style.setProperty('--crt-px', `${scale}px`);
+    root.style.setProperty('--crt-top', `${(window.innerHeight - VIEW_H * scale) / 2}px`);
+  }
 }
 window.addEventListener('resize', fit);
 window.addEventListener('orientationchange', fit);

@@ -15,6 +15,7 @@ import { drawTorches } from './art/torch.js';
 import { drawShadows } from './art/shadow.js';
 import { drawPickupGlows, drawBulletGlows } from './art/glow.js';
 import { drawVignette, drawHurt } from './art/vignette.js';
+import { setReducedFlashes } from './art/flash.js';
 import { drawProps, drawSwings, drawVents } from './art/props.js';
 import { drawSky, drawParallax, drawTerrain, drawLiquids, drawAmbient } from './art/tilelayer.js';
 
@@ -23,6 +24,7 @@ export function renderWorld(ctx, world) {
   const ox = cam.rx, oy = cam.ry;
 
   const theme = getTheme(world.level.theme);
+  setReducedFlashes(world.flashesReduced);
   const fancy = world.fxQuality !== 'low'; // glow, vignette: skipped at low effects quality
   const glow = fancy && !!theme.glow;
   drawSky(ctx, theme);
@@ -61,15 +63,17 @@ export function renderWorld(ctx, world) {
   if (theme.dark) drawDarkness(ctx, world, ox, oy);
   drawAmbient(ctx, theme, cam.x, world.time);
   if (fancy) drawVignette(ctx);
-  if (!world.player.alive && world.deathT < HURT_TIME) drawHurt(ctx, world.deathT / HURT_TIME);
+  if (!world.flashesReduced && !world.player.alive && world.deathT < HURT_TIME) drawHurt(ctx, world.deathT / HURT_TIME);
   if (world.bombFlash > 0) {
-    ctx.globalAlpha = Math.min(1, world.bombFlash * 1.6);
+    // reduced flashes: a soft wash instead of a full white-out
+    ctx.globalAlpha = Math.min(world.flashesReduced ? BOMB_SOFT : 1, world.bombFlash * 1.6);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     ctx.globalAlpha = 1;
   }
 }
 
+const BOMB_SOFT = 0.25; // the most the smart bomb whitens the screen when flashes are reduced
 const HURT_TIME = 0.45; // seconds the screen edges stay red after a death
 const RIDE_LIFT = 7;
 
