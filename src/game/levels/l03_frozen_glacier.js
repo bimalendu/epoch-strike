@@ -1,5 +1,9 @@
 // Level 3 - Ice Age: Frozen Glacier. Slippery ice floors, icicles that drop when you walk under them, ice cannons
 // and sabre-tooth packs, ending in the Mammoth Walker's frozen arena.
+//
+// The land is a glacier's: snow-covered moraine hills at 22 and 45 degrees, crevasses, seracs (blocks of ice standing on the snow) and a
+// steep snow slide down the end of the serac field. The ice itself stays flat, because a slope is not slippery and a slippery slope
+// is not a puzzle: slopes are snow, and the long ice floors are level.
 
 import { LevelBuilder } from '../levelgen.js';
 import { T } from '../tiles.js';
@@ -21,11 +25,17 @@ export const frozenGlacier = {
       for (const dx of dxs) seg.spawn({ type: 'icicle', y: ICICLE_TIP }, dx);
     };
 
-    // --- 1. Snowfield ---
-    let s = b.flat(26);
-    s.enemy('sabre', 12).enemy('sabre', 18);
+    // --- 1. Snowfield: moraine hills, a serac or two, and a crevasse ---
+    let s = b.flat(14);
+    s.enemy('sabre', 12);
     s.capsule('S', 4, 6);
-    s.medals(9, 11, 3, 2);
+    b.block(s.x0 + 8, 2, 2, T.ICE); // a serac to hop over
+    b.slope(1, { angle: 22 });
+    s = b.flat(6);
+    s.medalsAbove(0, 3, 2, 2);
+    b.slope(-1, { angle: 22 });
+    s = b.flat(6);
+    s.enemy('sabre', 4);
     b.pit(3);
 
     // --- 2. The ice slide ---
@@ -43,17 +53,17 @@ export const frozenGlacier = {
     s.enemy('sabre', 6).enemy('sabre', 9);
     s.enemy('drone', 11, { row: 8 });
 
-    // --- 3. Glacier steps ---
-    b.up(2);
+    // --- 3. Glacier steps: up the snow onto the ice tongue, then up again and down a long 45-degree moraine ---
+    b.slope(2, { angle: 45 });
     s = b.flat(16, { tile: T.ICE });
     icicles(s, [4, 7, 10]);
     s.enemy('icecannon', 12);
-    b.up(1);
+    b.slope(1, { angle: 22 });
     s = b.flat(12);
     s.enemy('sabre', 5).enemy('sabre', 8);
     s.capsule('M', 4, 5);
     s.capsule('E', 9, 6);
-    b.down(3);
+    b.slope(-3, { angle: 45 });
 
     // --- 4. Frozen ford ---
     s = b.flat(8);
@@ -62,7 +72,7 @@ export const frozenGlacier = {
     s.enemy('drone', 3, { row: 8 }).enemy('striker', 8, { row: 6 });
     b.pit(5, { fill: 'water' });
 
-    // --- 5. Cannon ridge ---
+    // --- 5. Cannon ridge, a crevasse, and the serac field with its steep snow slide ---
     s = b.flat(46, { tile: T.ICE });
     s.checkpoint(1);
     icicles(s, [8, 11, 14]);
@@ -72,9 +82,13 @@ export const frozenGlacier = {
     s.enemy('striker', 24, { row: 6 });
     s.capsule('B', 5, 6);
     b.pit(3);
+    b.flat(4);
+    b.slope(2, { angle: 45 });
     s = b.flat(10);
     s.enemy('pod', 5, { item: 'L' });
     s.enemy('trooper', 8);
+    b.block(s.x0 + 1, 2, 1, T.ICE);
+    b.slope(-2, { angle: 67 }); // the steep snow slide down the end of the serac field
 
     // --- 6. Approach and arena: the Mammoth Walker (on ice) ---
     s = b.flat(20);

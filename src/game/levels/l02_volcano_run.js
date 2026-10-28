@@ -1,5 +1,8 @@
 // Level 2 - Cretaceous: Volcano Run. Lava pits, fire lizards and diving pterosaurs, then the Eruption Climb:
-// the camera is forced forward while lava floods the valley floor, so the high road of platforms is the only safe way.
+// the camera is forced forward while lava floods the cone, so the crags above it are the only safe way.
+//
+// The ground is a volcano's: ash dunes at 22 degrees, a 45-degree climb up the cone's flank, and on the cone a ridge of crags joined by
+// ramps and scree (steep slopes the soldier slides down, so the climb never lets them stand still), all above the rising lava.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -20,12 +23,17 @@ export const volcanoRun = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 1 });
 
-    // --- 1. Ash plain ---
-    let s = b.flat(28);
-    s.enemy('firelizard', 12).enemy('firelizard', 19);
-    s.enemy('ptero', 22, { row: 6 });
+    // --- 1. Ash plain with a dune ---
+    let s = b.flat(8);
     s.capsule('M', 4, 6);
-    s.medals(8, 11, 3, 2);
+    b.slope(1, { angle: 22 });
+    s = b.flat(6);
+    s.enemy('firelizard', 2);
+    s.medalsAbove(0, 3, 2, 2);
+    b.slope(-1, { angle: 22 });
+    s = b.flat(8);
+    s.enemy('firelizard', 4);
+    s.enemy('ptero', 6, { row: 6 });
     b.pit(3, { fill: 'lava' });
 
     // --- 2. Broken ground over lava ---
@@ -40,30 +48,62 @@ export const volcanoRun = {
     s.capsule('S', 3, 7);
     s.capsule('E', 12, 6);
 
-    // --- 3. Eruption Climb ---
+    // --- 3. Eruption Climb: up the cone's flank, then along a ridge of crags, ramps and scree above the rising lava ---
     s = b.flat(8);
     s.prompt('RUN! THE LAVA IS RISING', 0, 14);
+    b.slope(3, { angle: 45 }); // the flank: the ground is now row 10, clear of the lava's last row (11)
     const zx0 = b.x;
-    const valley = b.flat(84);
+    const crags = []; // the level stretches the lizards stand on
+    // a crag: level rock, a 45-degree ramp up, a ledge, then a steep slide back down
+    crags.push(b.flat(5));
+    b.slope(2, { angle: 45 });
+    crags.push(b.flat(5));
+    b.slope(-2, { angle: 67 });
+    crags.push(b.flat(4));
+    b.pit(3, { fill: 'lava' });
+    // a long rise at 22 degrees and the same way down
+    crags.push(b.flat(4));
+    b.slope(2, { angle: 22 });
+    crags.push(b.flat(4));
+    b.slope(-2, { angle: 22 });
+    crags.push(b.flat(3));
+    b.pit(4, { fill: 'lava' });
+    // the high crest of the cone: a three-tile ramp, a short ledge and a ramp down
+    crags.push(b.flat(5));
+    b.slope(3, { angle: 45 });
+    crags.push(b.flat(4));
+    b.slope(-3, { angle: 45 });
+    crags.push(b.flat(3));
+    b.pit(3, { fill: 'lava' });
+    crags.push(b.flat(8));
+    b.slope(2, { angle: 45 });
+    crags.push(b.flat(6));
+    b.slope(-2, { angle: 67 });
+    crags.push(b.flat(6));
     const zx1 = b.x;
-    for (let k = 0; k < 12; k++) b.platform(zx0 + 2 + k * 7, 10, 5);
-    for (let k = 0; k < 5; k++) b.platform(zx0 + 8 + k * 14, 7, 4);
-    valley.enemy('firelizard', 20).enemy('firelizard', 44).enemy('firelizard', 66);
-    b.addEnemy('ptero', zx0 + 14, { row: 6 });
-    b.addEnemy('ptero', zx0 + 36, { row: 5 });
-    b.addEnemy('ptero', zx0 + 58, { row: 6 });
-    b.addEnemy('drone', zx0 + 26, { row: 8 });
-    b.addEnemy('drone', zx0 + 48, { row: 8 });
-    b.addEnemy('drone', zx0 + 70, { row: 7 });
-    b.addEnemy('striker', zx0 + 40, { row: 6 });
-    b.addEnemy('striker', zx0 + 64, { row: 5 });
-    b.addCapsule('R', zx0 + 10, 5);
-    b.addCapsule('random', zx0 + 52, 5);
-    for (let k = 0; k < 5; k++) b.addPickup('medal', zx0 + 10 + k * 14, 6);
+    crags[1].enemy('firelizard', 2);
+    crags[5].enemy('firelizard', 1);
+    crags[9].enemy('firelizard', 1);
+    b.addEnemy('ptero', zx0 + 14, { row: 3 });
+    b.addEnemy('ptero', zx0 + 36, { row: 2 });
+    b.addEnemy('ptero', zx0 + 58, { row: 3 });
+    b.addEnemy('drone', zx0 + 26, { row: 5 });
+    b.addEnemy('drone', zx0 + 48, { row: 5 });
+    b.addEnemy('drone', zx0 + 66, { row: 4 });
+    b.addEnemy('striker', zx0 + 40, { row: 3 });
+    b.addEnemy('striker', zx0 + 64, { row: 2 });
+    b.addCapsule('R', zx0 + 10, 3);
+    b.addCapsule('random', zx0 + 52, 3);
+    crags[0].medalsAbove(1, 1, 2);
+    crags[3].medalsAbove(1, 1, 2);
+    crags[6].medalsAbove(1, 1, 2);
+    crags[8].medalsAbove(2, 1, 2);
+    crags[11].medalsAbove(2, 1, 2);
     b.lavaRise(zx0, zx1, { endRow: 11, interval: 3 });
     b.autoscroll(zx0, zx1, 42);
 
-    // --- 4. Cooled ground: a bunker and the last lava gap ---
+    // --- 4. Cooled ground: down the far side of the cone, a bunker and the last lava gap ---
+    b.slope(-3, { angle: 45 });
     s = b.flat(24);
     s.checkpoint(1);
     s.enemy('pod', 12, { item: 'F' });

@@ -89,6 +89,19 @@ export class Seg {
     return this;
   }
 
+  /**
+   * `n` medals in a row following the ground: each floats `lift` tiles above the surface under it (a slope's line included), or
+   * in an arc of height `arc` tiles when `arc` > 0. Use this instead of `medals` wherever the ground is not level.
+   */
+  medalsAbove(dx, n = 3, lift = 2, step = 2, arc = 0) {
+    for (let i = 0; i < n; i++) {
+      const rise = arc ? Math.round(Math.sin((i / Math.max(1, n - 1)) * Math.PI) * arc) : 0;
+      const col = this.x0 + dx + i * step;
+      this.b.addPickupAt('medal', col, this.b.groundY(col) - (lift + rise) * TILE);
+    }
+    return this;
+  }
+
   checkpoint(dx = 0) {
     this.b.addCheckpoint(this.x0 + dx);
     return this;
@@ -424,6 +437,16 @@ export class LevelBuilder {
 
   addPickup(item, col, row) {
     return this.addSpawn({ type: 'pickup', item, x: col * TILE + TILE / 2, y: row * TILE });
+  }
+
+  /** A pickup at an exact height (px, as `y` of the spawn), for things that float over a slope. */
+  addPickupAt(item, col, y) {
+    return this.addSpawn({ type: 'pickup', item, x: col * TILE + TILE / 2, y });
+  }
+
+  /** The tile row `k` rows above the ground the builder is laying now: levels with hills place fliers and torches with this. */
+  rowAbove(k) {
+    return this.gy - k;
   }
 
   addTorch(col, row, r = 56) {

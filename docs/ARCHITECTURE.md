@@ -326,6 +326,7 @@ let s = b.flat(30);             // ground
 s.enemy('raptor', 20);          // 20 tiles in
 b.pit(3, { fill: 'spikes' });   // refuses anything wider than the player can jump
 b.up(2);                        // refuses steps taller than the player can climb
+b.slope(2, { angle: 45 });      // walkable slope: 22, 45 or 67 (steep scree: slid down, never climbed)
 b.exit();
 return b.finish();
 ```

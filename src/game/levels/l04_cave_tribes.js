@@ -2,6 +2,10 @@
 // shot you fire lights them for an instant (the Fire Spear's flight lights them for longer). The Rift has possessed
 // the tribes, so their eyes glow. Torches mark checkpoints and trouble. A hidden 1UP sits up a skylight chimney, and
 // the Cave Bear Hive waits in a torch-lit cavern with two ledges to shoot its high hive from.
+//
+// The floors are a cavern's: chambers that dip and rise at 22 degrees, a gallery climbed and descended at 45, and a steep slide
+// down between two tiers of the lava seam. The hall of mammoth bones and the skylight chimney stay level, because their ledges
+// are measured from the floor.
 
 import { LevelBuilder } from '../levelgen.js';
 import { T } from '../tiles.js';
@@ -19,20 +23,33 @@ export const caveTribes = {
     const b = new LevelBuilder({ ...def, id: 3 });
     const chimneys = []; // [x0, x1) columns left open to the sky
 
-    // --- 1. Cave mouth: learn that shooting lights the way ---
-    let s = b.flat(34);
-    s.torch(5, 10, 64).torch(22, 10, 64);
+    // --- 1. Cave mouth: learn that shooting lights the way, then the chamber floor dips and rises ---
+    let s = b.flat(12);
+    s.torch(5, 10, 64);
     s.prompt('IT IS DARK. SHOOTING LIGHTS THE WAY', 3, 16);
     s.capsule('E', 8, 6);
-    s.enemy('caveman', 18).enemy('caveman', 24);
-    s.medals(12, 11, 3, 2);
+    b.slope(-1, { angle: 22 });
+    s = b.flat(6);
+    s.torch(2, b.rowAbove(3), 64);
+    s.enemy('caveman', 3);
+    s.medalsAbove(1, 3, 2, 1);
+    b.slope(1, { angle: 22 });
+    s = b.flat(12);
+    s.torch(4, 10, 64);
+    s.enemy('caveman', 5);
     b.pit(3);
 
-    // --- 2. Bone pit: a spear thrower over the spikes ---
-    s = b.flat(24);
-    s.torch(3, 10, 56).torch(16, 10, 56);
-    s.enemy('spearman', 12).enemy('caveman', 8);
-    s.enemy('bat', 18, { row: 7 });
+    // --- 2. Bone pit: a gallery to climb, and a spear thrower over the spikes ---
+    s = b.flat(10);
+    s.torch(3, 10, 56);
+    s.enemy('caveman', 8);
+    b.slope(2, { angle: 45 });
+    s = b.flat(8);
+    s.torch(2, b.rowAbove(3), 56);
+    s.enemy('spearman', 3);
+    s.enemy('bat', 6, { row: 7 });
+    b.slope(-2, { angle: 45 });
+    b.flat(2);
     const pit = b.pit(4, { fill: 'spikes' });
     b.addTorch(pit.x0 + 2, 10, 50);
     b.platform(pit.x0 - 1, 10, 6);
@@ -84,14 +101,20 @@ export const caveTribes = {
     b.pit(4, { fill: 'lava' });
     b.platform(b.x - 5, 11, 2);
 
-    // --- 6. Lava seam: a glowing crossing, then the tribe's last stand ---
-    s = b.flat(30);
+    // --- 6. Lava seam: a glowing crossing over two tiers joined by a steep slide, then the tribe's last stand ---
+    s = b.flat(8);
     s.checkpoint(1);
-    s.torch(3, 10, 60).torch(22, 10, 64);
-    s.enemy('caveman', 8).enemy('caveman', 11).enemy('spearman', 16);
-    s.enemy('bat', 14, { row: 7 }).enemy('bat', 20, { row: 8 }).enemy('bat', 24, { row: 6 });
+    s.torch(3, 10, 60);
     s.capsule('B', 6, 6);
-    s.enemy('pod', 26, { item: 'E' });
+    b.slope(2, { angle: 22 });
+    s = b.flat(10);
+    s.torch(3, b.rowAbove(3), 64);
+    s.enemy('caveman', 2).enemy('caveman', 5).enemy('spearman', 8);
+    s.enemy('bat', 4, { row: 7 }).enemy('bat', 7, { row: 8 }).enemy('bat', 9, { row: 6 });
+    b.slope(-2, { angle: 67 }); // the steep slide down to the lower tier
+    s = b.flat(10);
+    s.torch(3, 10, 64);
+    s.enemy('pod', 6, { item: 'E' });
 
     // --- 7. Approach and arena: the Cave Bear Hive ---
     s = b.flat(18);

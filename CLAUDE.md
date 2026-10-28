@@ -45,7 +45,7 @@ Core rules:
 - Fixed 60 Hz step (`DT = 1/60`) at 480x270 logical pixels with 16 px tiles. `World.update(input, dt)` is deterministic: a seeded RNG means scripted input replays identically. Cosmetic randomness must come from `world.fxRand` and never from the gameplay RNG. A test checks that high and low effects quality produce identical simulations.
 - The world never calls scenes. It pushes to `world.events` (`kill`, `levelClear`, `bossStart`, ...) and the scene drains them each frame.
 - All art is rectangles drawn through `Painter`, so it renders identically in a browser and in Node's software canvas.
-- Levels are scripts for `LevelBuilder` (`levelgen.js`), not grids. The builder throws on pits or steps the player can't cross. `solver.js` uses the real movement numbers to prove each level can be finished.
+- Levels are scripts for `LevelBuilder` (`levelgen.js`), not grids. The builder throws on pits or steps the player can't cross. `solver.js` uses the real movement numbers to prove each level can be finished. Ground can slope: `b.slope(dh, { angle: 22 | 45 | 67 })` (67 is steep scree the soldier slides down and cannot climb); see "Slopes" in `docs/ARCHITECTURE.md`.
 - Bosses are `arch: 'boss'` enemy defs run by the state machine in `boss.js` (enter -> idle -> tele -> attack, with phases). Boss scripts read arena bounds from `w.bossArena` and never from `level.boss` (Level 20 is a multi-arena boss rush).
 
 ### Registries
@@ -61,6 +61,9 @@ Every extensible list ends in a sentinel comment. Add new entries at the sentine
 | player weapon | `weapons.js` | `<<WEAPONS>>` |
 | music track | `tracks.js` | `<<TRACKS>>` |
 | theme | `art/themes.js` | (object key) |
+| theme's creatures, weather or foreground | `theme.life` / `theme.weather` / `theme.front` in `art/themes.js`; kinds in `art/life.js` (`CREATURES`), `art/weather.js`, `art/front.js` (`FRONT_KINDS`) | (object key) |
+| landform, plant or sky painter for a parallax layer | `art/scenery_nature.js` (`NATURE`, `TREES`), layers listed in the theme | (object key) |
+| ground fringe, underside or decor kind | `art/relief.js` (`FRINGES`, `UNDERSIDES`, `DECOR`), named by `theme.tiles.solid` and `theme.decor` | (object key) |
 
 `enemy_defs.js` must not import `ai.js`. Hooks that need both live in `enemies.js`.
 
@@ -71,7 +74,9 @@ The suite runs the real game headlessly. Tests live in `tests/unit` (one module,
 - Every attack is telegraphed: enemy shots >= 0.5 s, dives >= 0.6 s, boss attacks >= `MIN_BOSS_TELE` (0.6 s). Hazard floor marks also take >= 0.6 s.
 - With the rifle, `bossbot` must kill each real boss in 40-120 s with its phases in order, and the era weapon must make the fight shorter. The bot style per boss (`ground`/`jump`/`ledge`/`under`) is set in the tests' `STYLE` map.
 - The enemy cap per era group (`enemyCapFor`) must be respected, including by arena waves.
-- Perf budgets (`tests/integration/perf.test.js`): at most 2600 canvas calls in the busiest frame, and no canvas creation during play after warm-up. New lazy caches belong in `art/warm.js`.
+- Perf budgets (`tests/integration/perf.test.js`): at most 2600 canvas calls in the busiest frame, and no canvas creation during play after warm-up. New lazy caches belong in `art/warm.js`. The life, weather and foreground of a theme together stay within 150 canvas calls a frame (`tests/integration/life_weather.test.js`).
+- Slopes (`tests/integration/slopes.test.js`, `slope_levels.test.js`): every slope branch in `moveBody` is gated on `world.hasSlopes`, so a level without ramps simulates exactly as before. Zones that need level ground (`tankRoad`, `searchlight`, `flipHall`, `swells`, `barrage`, checkpoints) refuse a slope.
+- Art uses no alpha for soft edges (dither instead, `dithered()` in `art/scenery_nature.js`): a test requires nature layers to be fully opaque, because the browser and the software canvas blend alpha slightly differently.
 - Release (`tests/e2e/release.test.js`): the shipped site is only `index.html`, `style.css` and `src/`. Imports must be relative and stay inside `src/` (no bare specifiers). The README's level table must match the level registry.
 - Economy (`tests/unit/economy.test.js`): one hidden 1UP per era group, 6-25 medals per level, and lives supply inside the break-even band. Changing a level's medals shows up here.
 - The credits `BOSS_ORDER` must stay in step with the level scripts.
