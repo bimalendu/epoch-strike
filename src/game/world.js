@@ -455,7 +455,6 @@ export class World {
     const L = this.bossArena;
     if (!L || this.boss || this.bossDone || !this.player.alive) return;
     if (this.player.x < L.trigger) return;
-    if (L.triggerY !== undefined && this.player.y > L.triggerY) return; // tower: stand on the arena floor first
     const cam = this.camera;
     cam.lockMin = cam.lockMax = L.cam;
     for (const e of this.enemies) if (e.alive) e.alive = false;
@@ -700,13 +699,7 @@ export class World {
   /** Simple level exit used by the testbed; real levels end at the boss door (Week 6). */
   checkExit() {
     const x = this.level.exitX;
-    const y = this.level.exitY;
     if (this.cleared || !this.player.alive) return;
-    if (y !== undefined && this.player.y <= y) {
-      this.cleared = true;
-      this.events.push({ type: 'levelClear' });
-      return;
-    }
     if (x === undefined) return;
     if (this.player.x >= x) {
       this.cleared = true;
@@ -730,13 +723,12 @@ export class World {
   activateSpawns() {
     const cam = this.camera;
     const right = cam.x + VIEW_W;
-    const bottom = cam.y + VIEW_H;
     for (const s of this.spawnList) {
       if (s.done) continue;
       const trig = s.trig !== undefined ? s.trig : s.x - 24;
       if (s.x < cam.x - 120) {
         s.done = true;
-      } else if (right >= trig && (!cam.tall || (s.y > cam.y - 80 && s.y < bottom + 80))) {
+      } else if (right >= trig) {
         if (s.type === 'pickup') {
           s.done = true;
           spawnPickup(this, s.item, s.x, s.y, { float: true });
@@ -757,9 +749,8 @@ export class World {
 
   /** The tutorial prompt for the player's position, or null. */
   promptAt(x = this.player.x) {
-    const y = this.player.y;
     for (const pr of this.level.prompts || []) {
-      if (x >= pr.x0 && x < pr.x1 && (pr.y0 === undefined || (y >= pr.y0 && y < pr.y1))) return pr.text;
+      if (x >= pr.x0 && x < pr.x1) return pr.text;
     }
     return null;
   }

@@ -31,7 +31,7 @@ export function renderWorld(ctx, world) {
   const fancy = world.fxQuality !== 'low'; // glow, vignette: skipped at low effects quality
   const glow = fancy && !!theme.glow;
   drawSky(ctx, theme);
-  drawParallax(ctx, theme, cam.x, cam.y, cam.tall);
+  drawParallax(ctx, theme, cam.x);
   if (fancy) {
     drawLifeBack(ctx, theme, world.time, cam.x); // birds, bats, fish, falling water
     drawFog(ctx, theme, cam.x, world.time);

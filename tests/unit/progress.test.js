@@ -1,5 +1,5 @@
 // Unit tests for src/game/progress.js (levelProgress, the HUD progress bar) using hand-made fake worlds:
-// null when there is nothing to measure, 0 at the start, 1 at the goal, clamping, markers, and the vertical branch.
+// null when there is nothing to measure, 0 at the start, 1 at the goal, clamping, and markers.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { levelProgress } from '../../src/game/progress.js';
@@ -30,7 +30,6 @@ test('horizontal: 0 at the spawn, 1 at the exit, linear between', () => {
   assert.equal(levelProgress(side(100)).frac, 0);
   assert.equal(levelProgress(side(1100)).frac, 1);
   assert.equal(levelProgress(side(600)).frac, 0.5);
-  assert.equal(levelProgress(side(100)).vertical, false);
 });
 
 test('horizontal: clamped before the start and past the goal', () => {
@@ -50,26 +49,6 @@ test('exitX takes priority over the boss trigger', () => {
 
 test('a goal to the left of the spawn still measures progress toward it', () => {
   const p = levelProgress(fake({ level: { exitX: -900 }, player: { x: -400, y: 0 } }));
-  assert.equal(p.frac, 0.5);
-});
-
-test('vertical: climbing from the spawn height to exitY runs 0 to 1 going up', () => {
-  const mk = (py) => fake({ level: { exitY: 100 }, player: { x: 0, y: py } });
-  assert.equal(levelProgress(mk(500)).frac, 0);
-  assert.equal(levelProgress(mk(300)).frac, 0.5);
-  assert.equal(levelProgress(mk(100)).frac, 1);
-  assert.equal(levelProgress(mk(100)).vertical, true);
-});
-
-test('vertical: clamped when below the start or above the goal', () => {
-  const mk = (py) => fake({ level: { exitY: 100 }, player: { x: 0, y: py } });
-  assert.equal(levelProgress(mk(900)).frac, 0);
-  assert.equal(levelProgress(mk(-50)).frac, 1);
-});
-
-test('vertical: a boss triggerY works when exitY is absent, and ignores x entirely', () => {
-  const p = levelProgress(fake({ level: { boss: { triggerY: 100, trigger: 9999 } }, player: { x: 7777, y: 300 } }));
-  assert.equal(p.vertical, true);
   assert.equal(p.frac, 0.5);
 });
 
@@ -101,13 +80,4 @@ test('arenas list every arena but the last, marking those already cleared', () =
 test('arenas is empty with a single arena or none', () => {
   assert.deepEqual(levelProgress(fake({ level: { exitX: 1100 }, arenas: [{ trigger: 1100 }] })).arenas, []);
   assert.deepEqual(levelProgress(fake({ level: { exitX: 1100 } })).arenas, []);
-});
-
-test('vertical arenas use triggerY (falling back to floorY) for their marker', () => {
-  const w = fake({
-    level: { exitY: 100 },
-    player: { x: 0, y: 500 },
-    arenas: [{ triggerY: 300 }, { floorY: 200 }, { triggerY: 100 }],
-  });
-  assert.deepEqual(levelProgress(w).arenas.map((a) => a.f), [0.5, 0.75]);
 });

@@ -6,7 +6,6 @@ import assert from 'node:assert/strict';
 import '../support/helpers.js';
 import { buildLevel } from '../../src/game/levels.js';
 import { solveLevel } from '../../src/game/solver.js';
-import { LevelBuilder } from '../../src/game/levelgen.js';
 import { T, SLOPE, STEEP } from '../../src/game/tiles.js';
 import { TILE } from '../../src/game/constants.js';
 
@@ -46,7 +45,6 @@ test('Level 6 (Siege of Troy) is a hillside assault: it runs left to right up sl
   const lvl = buildLevel(5);
   assert.ok(lvl.cols >= 250, `a long level (${lvl.cols} columns)`);
   assert.ok(lvl.rows < 60, 'no longer a tower');
-  assert.equal(lvl.exitY, undefined, 'the exit is the end of the level, not a height');
   assert.ok(count(lvl, GENTLE_22) >= 8 && count(lvl, RAMP_45) >= 8);
   assert.ok(lvl.tiles.some((t) => STEEP[t]), 'a scree slide into the siege trench');
   const sol = solveLevel(lvl);
@@ -89,17 +87,4 @@ test('the Ancient levels keep the lives economy of the originals: the same medal
   const medals = (lvl) => lvl.spawns.filter((s) => s.type === 'pickup' && s.item === 'medal').length;
   assert.deepEqual([4, 5, 6, 7].map((i) => medals(buildLevel(i))), [13, 24, 14, 17]);
   assert.deepEqual([4, 5, 6, 7].map((i) => buildLevel(i).spawns.filter((s) => s.type === 'capsule').length), [5, 5, 5, 6]);
-});
-
-test('a tower boss arena (bossArenaAt) is a floor across the whole width with a one-way strip to climb through, and a checkpoint on it', () => {
-  const b = new LevelBuilder({ id: 5, theme: 'troy', seed: 9 }, { rows: 40, gy: 37 });
-  b.flat(30);
-  b.bossArenaAt('colossus', 10, { entry: [2, 8] });
-  const lvl = b.finish();
-  assert.equal(lvl.boss.type, 'colossus');
-  assert.equal(lvl.boss.floorY, 10 * TILE);
-  assert.equal(lvl.boss.triggerY, 10 * TILE + 2, 'the boss wakes once the player stands on the floor');
-  assert.equal(lvl.tiles[10 * lvl.cols + 4], T.PLATFORM, 'the entry strip is one-way');
-  assert.notEqual(lvl.tiles[10 * lvl.cols + 12], T.PLATFORM);
-  assert.deepEqual(lvl.checkpoints.at(-1), { x: 2 * TILE, y: 10 * TILE });
 });

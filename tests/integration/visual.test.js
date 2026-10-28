@@ -386,14 +386,12 @@ test('progress: every level has a bar that starts empty, ends full and keeps its
     const w = new World(L, {});
     const pr = levelProgress(w);
     assert.ok(pr, `level ${i + 1} has a bar`);
-    assert.equal(pr.vertical, (L.exitY ?? (L.boss ? L.boss.triggerY : undefined)) !== undefined, `level ${i + 1}: climbing or running`);
     assert.ok(pr.frac < 0.02, `level ${i + 1} starts at the start (${pr.frac})`);
     const f = pr.checkpoints.map((c) => c.f);
     for (const v of f) assert.ok(v >= 0 && v <= 1, `level ${i + 1} checkpoint ${v}`);
     assert.equal(pr.arenas.length, w.arenas.length - 1, `level ${i + 1}: a skull per boss arena before the last`);
     // standing at the goal fills the bar
-    if (pr.vertical) w.player.y = L.exitY ?? L.boss.triggerY;
-    else w.player.x = L.exitX ?? L.boss.trigger;
+    w.player.x = L.exitX ?? L.boss.trigger;
     assert.equal(levelProgress(w).frac, 1, `level ${i + 1} ends full`);
   }
 });

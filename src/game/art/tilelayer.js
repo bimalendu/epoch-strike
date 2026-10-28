@@ -164,18 +164,13 @@ export function drawSky(ctx, theme) {
   ctx.drawImage(skyCanvas(theme), 0, 0);
 }
 
-export function drawParallax(ctx, theme, camX, camY, tall) {
+export function drawParallax(ctx, theme, camX) {
   theme.layers.forEach((layer, i) => {
     const img = sceneryLayer(`${theme.id}:${i}`, layer, theme);
     const speed = layer.s || 0.1;
     let x = -Math.floor((camX * speed) % VIEW_W);
     if (x > 0) x -= VIEW_W;
-    const y = tall ? -Math.floor(camY * speed * 0.6) : 0;
-    for (let dx = x; dx < VIEW_W; dx += VIEW_W) ctx.drawImage(img, dx, y);
-    if (y + VIEW_H < VIEW_H && layer.c) {
-      ctx.fillStyle = layer.c;
-      ctx.fillRect(0, y + VIEW_H, VIEW_W, VIEW_H);
-    }
+    for (let dx = x; dx < VIEW_W; dx += VIEW_W) ctx.drawImage(img, dx, 0);
   });
 }
 

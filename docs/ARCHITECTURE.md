@@ -282,13 +282,6 @@ hits of armour (`hitBike`, like the tank's), a wreck throws the soldier clear un
 is handed a fresh bike (`supplyBike`). `beam(col, {from, length, period, tele, hold, phase})` is a laser emitter: a floor mark
 flashes for `tele` seconds (never under 0.6), then a column of ghost `beam` bullets stabs for `hold` seconds.
 
-**Tower levels** climb instead of run: the stage is one screen wide and `rows` tall, the camera follows y
-(`Camera.tall`) and the level ends at `exitTop(row)` or in a `bossArenaAt(type, row)` whose floor has a one-way entry
-strip. The solver and the bot use `goalY` for them, and stragglers left far below the climb are despawned so they
-cannot crowd the screen.
-No shipped level is a tower any more (Level 6, the Siege of Troy, became a hillside assault in the nature pass), but the builder, the
-solver and the camera still support one, and `tests/integration/ancient.test.js` and `ancient_levels.test.js` keep them covered.
-
 ## Slopes
 
 Ten tile ids (`T.RAMP45_*`, `T.RAMP22_*_LO/HI`, `T.STEEP_*_LO/HI`) are walkable ground whose surface is a line across the

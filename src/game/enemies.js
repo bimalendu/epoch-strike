@@ -1,7 +1,7 @@
 // Enemy entities: creation, per-frame update, damage and death. The behaviours themselves live in ai.js
 // (the ARCH registry maps an enemy def's `arch` name to its update function).
 
-import { TILE, VIEW_W, VIEW_H } from './constants.js';
+import { TILE, VIEW_W } from './constants.js';
 import { enemyDef } from './enemy_defs.js';
 import { explosion, spark, debris, ring, fall } from './fx.js';
 import { spawnPickup, randomWeaponItem } from './pickups.js';
@@ -88,8 +88,6 @@ export function updateEnemies(world, dt) {
     if (fn) fn(e, world, dt);
     // despawn far behind the camera or far below the map
     if (e.x < cam.x - 160 || e.y > world.rows * TILE + 80 || e.x > cam.x + VIEW_W + 700) e.alive = false;
-    // towers: whatever is left far below the climb (or far above it) is gone, so it cannot crowd the screen or snipe
-    if (cam.tall && !e.def.boss && (e.y > cam.y + VIEW_H + 280 || e.y < cam.y - 420)) e.alive = false;
   }
 }
 

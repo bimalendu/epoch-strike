@@ -286,13 +286,7 @@ export function hopKind(grid, a, b) {
   return null;
 }
 
-/** Towers end at a height, not a column. */
-function defaultGoalY(level) {
-  return level.exitY ?? (level.boss ? level.boss.triggerY : undefined);
-}
-
 function defaultGoalX(level) {
-  if (defaultGoalY(level) !== undefined) return undefined;
   return level.exitX ?? (level.boss ? level.boss.trigger : undefined);
 }
 
@@ -302,7 +296,7 @@ function defaultGoalX(level) {
  * Returns { reach: Map(key -> {spot, from, kind}), spots, start, goal, path } where `goal` is the first
  * reachable spot at or beyond `goalX` pixels (when given) and `path` the moves leading to it.
  */
-export function solveLevel(level, { goalX = defaultGoalX(level), goalY = defaultGoalY(level), extraLinks = level.links || [], from = null } = {}) {
+export function solveLevel(level, { goalX = defaultGoalX(level), extraLinks = level.links || [], from = null } = {}) {
   const grid = new LevelGrid(level);
   const { byCol, all } = findSpots(grid);
   const origin = from || level.spawn; // `from` lets a bot re-plan from wherever it is standing
@@ -344,7 +338,7 @@ export function solveLevel(level, { goalX = defaultGoalX(level), goalY = default
       continue;
     }
     const a = queue.shift();
-    if (!goal && ((goalX !== undefined && a.x * TILE + TILE / 2 >= goalX) || (goalY !== undefined && a.y * TILE <= goalY))) goal = a;
+    if (!goal && goalX !== undefined && a.x * TILE + TILE / 2 >= goalX) goal = a;
     const tryTo = (b, kind, data) => {
       if (reach.has(b.key)) return;
       if (layered && kind !== 'walk' && kind !== 'slide') {

@@ -454,14 +454,9 @@ export class LevelBuilder {
     this.checkpoints.push({ x: col * TILE, y: row !== undefined ? row * TILE : this.groundY(col) });
   }
 
-  /** A tutorial caption shown while the player is between columns `col` and `col + len` (and, in towers, rows `rows`). */
-  addPrompt(text, col, len, { rows = null } = {}) {
-    const p = { text, x0: col * TILE, x1: (col + len) * TILE };
-    if (rows) {
-      p.y0 = rows[0] * TILE;
-      p.y1 = rows[1] * TILE;
-    }
-    this.prompts.push(p);
+  /** A tutorial caption shown while the player is between columns `col` and `col + len`. */
+  addPrompt(text, col, len) {
+    this.prompts.push({ text, x0: col * TILE, x1: (col + len) * TILE });
   }
 
   /** End of a level that has no boss (a trigger line near the last column). Levels with a boss use bossArena(). */
@@ -681,41 +676,6 @@ export class LevelBuilder {
       spawnX: x1 - 30,
     });
     return seg;
-  }
-
-  /**
-   * Tower levels climb instead of run: the whole level is one screen wide (`this.x` columns) and many rows tall.
-   * The level ends when the player reaches row `row` (a trigger line near the top).
-   */
-  exitTop(row) {
-    this.extra.exitY = row * TILE;
-    return this;
-  }
-
-  /**
-   * The boss arena at the top of a tower: a floor across the whole width at `row`. The boss spawns once the player
-   * is standing on it. The camera still follows vertically, so the fight happens at the top of the tower.
-   */
-  bossArenaAt(type, row, { entry = [2, 8] } = {}) {
-    const cols = this.x;
-    for (let x = 0; x < cols; x++) {
-      this.col(x);
-      const through = x >= entry[0] && x < entry[1]; // a one-way strip the climber rises through
-      this.set(x, row, through ? T.PLATFORM : this.groundTile);
-      if (!through) this.set(x, row + 1, this.groundTile);
-    }
-    this.extra.boss = {
-      type,
-      trigger: 4 * TILE,
-      triggerY: row * TILE + 2,
-      cam: 0,
-      x0: 0,
-      x1: cols * TILE,
-      floorY: row * TILE,
-      spawnX: cols * TILE - 30,
-    };
-    this.addCheckpoint(2, row);
-    return this;
   }
 
   // ---- finishing ----

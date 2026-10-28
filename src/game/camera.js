@@ -1,7 +1,7 @@
-// Side-scrolling camera: only moves forward (like Contra), supports arena locks, auto-scroll
-// sections and vertical follow for tall levels.
+// Side-scrolling camera: only moves forward (like Contra), supports arena locks and auto-scroll sections.
+// Levels are one screen tall, so it never scrolls vertically (`y` stays 0).
 
-import { TILE, VIEW_W, VIEW_H } from './constants.js';
+import { TILE, VIEW_W } from './constants.js';
 
 export class Camera {
   constructor(world) {
@@ -10,8 +10,6 @@ export class Camera {
     this.y = 0;
     this.minX = 0;
     this.maxX = Math.max(0, world.cols * TILE - VIEW_W);
-    this.maxY = Math.max(0, world.rows * TILE - VIEW_H);
-    this.tall = world.rows * TILE > VIEW_H + 40;
     this.lockMin = null; // arena lock: camera x must stay inside [lockMin, lockMax]
     this.lockMax = null;
     this.shakeT = 0;
@@ -22,7 +20,6 @@ export class Camera {
 
   snap(p) {
     this.x = Math.min(this.maxX, Math.max(0, p.x - VIEW_W * 0.42));
-    this.y = this.tall ? Math.min(this.maxY, Math.max(0, p.y - VIEW_H * 0.58)) : 0;
   }
 
   update(world, p, dt) {
@@ -40,14 +37,6 @@ export class Camera {
     if (this.lockMax !== null) hi = Math.min(hi, this.lockMax);
     if (hi < lo) hi = lo;
     this.x = Math.min(hi, Math.max(lo, this.x));
-
-    if (this.tall) {
-      const target = p.y - VIEW_H * 0.58;
-      this.y += (target - this.y) * Math.min(1, 6 * dt);
-      this.y = Math.min(this.maxY, Math.max(0, this.y));
-    } else {
-      this.y = 0;
-    }
 
     if (this.shakeT > 0) {
       this.shakeT -= dt;

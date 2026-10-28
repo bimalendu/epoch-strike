@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';
 import { World } from '../../src/game/world.js';
 import { LevelBuilder } from '../../src/game/levelgen.js';
-import { solveLevel } from '../../src/game/solver.js';
 import { spawnEnemy, damageEnemy } from '../../src/game/enemies.js';
 import { ENEMY_DEFS } from '../../src/game/enemy_defs.js';
 import { WEAPONS, eraWeaponFor } from '../../src/game/weapons.js';
@@ -82,20 +81,6 @@ test('the bot clears a wave arena and finishes the level', () => {
   const r = playBot(level, { seconds: 120 });
   assert.ok(r.cleared, 'level cleared');
   assert.equal(r.falls, 0);
-});
-
-test('tower level: the exit is a height, the solver climbs to it, and the bot reaches it', () => {
-  const b = new LevelBuilder({ id: 5, theme: 'troy', seed: 9 }, { rows: 40, gy: 37 });
-  b.flat(30);
-  // a zig-zag staircase of ledges, three rows apart, up to the top
-  for (let i = 0; i < 9; i++) b.platform(i % 2 === 0 ? 3 : 15, 34 - i * 3, 10);
-  b.exitTop(12);
-  const level = b.finish();
-  assert.equal(level.exitY, 12 * TILE);
-  const sol = solveLevel(level);
-  assert.ok(sol.goal, 'solver finds the top');
-  const r = playBot(level, { seconds: 150 });
-  assert.ok(r.cleared, `bot climbed it (y=${r.world.player.y})`);
 });
 
 test('charger: an elephant telegraphs for at least 0.6 s, then charges and stops at the arena wall', () => {

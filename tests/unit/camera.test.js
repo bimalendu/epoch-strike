@@ -1,9 +1,9 @@
 // Unit tests for src/game/camera.js against a stub world: snapping, clamping to the map, narrow maps, arena locks,
-// autoscroll, the forward-only rule, vertical follow in tall levels, and screen shake (decay and its opt-outs).
+// autoscroll, the forward-only rule, a fixed y, and screen shake (decay and its opt-outs).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Camera } from '../../src/game/camera.js';
-import { TILE, VIEW_W, VIEW_H, DT } from '../../src/game/constants.js';
+import { TILE, VIEW_W, DT } from '../../src/game/constants.js';
 import { rng } from '../../src/engine/rng.js';
 
 const stubWorld = (cols, rows = 17, extra = {}) => ({ cols, rows, autoscroll: null, fxRand: rng(1), ...extra });
@@ -142,29 +142,13 @@ test('autoscroll stops at the end of the map', () => {
   assert.equal(cam.x, cam.maxX);
 });
 
-test('a short level has y fixed at 0; a tall level follows the player vertically within [0, maxY]', () => {
-  const short = new Camera(stubWorld(100, 17));
-  assert.equal(short.tall, false);
-  settle(short, stubWorld(100, 17), at(100, 250), 60);
-  assert.equal(short.y, 0);
-
-  const w = stubWorld(100, 60);
-  const tall = new Camera(w);
-  assert.equal(tall.tall, true);
-  settle(tall, w, at(100, 800), 300);
-  assert.ok(tall.y > 0 && tall.y <= tall.maxY);
-  settle(tall, w, at(100, 60 * TILE + 999), 300);
-  assert.equal(tall.y, tall.maxY);
-  assert.equal(tall.maxY, 60 * TILE - VIEW_H);
-});
-
-test('a tall camera can scroll back up (vertical follow is two-way)', () => {
+test('the camera never scrolls vertically: y stays 0 however high or low the player is', () => {
   const w = stubWorld(100, 60);
   const cam = new Camera(w);
   settle(cam, w, at(100, 800), 300);
-  const high = cam.y;
-  settle(cam, w, at(100, 200), 300);
-  assert.ok(cam.y < high);
+  assert.equal(cam.y, 0);
+  settle(cam, w, at(100, 60 * TILE + 999), 300);
+  assert.equal(cam.y, 0);
 });
 
 test('shake sets a render offset bounded by its magnitude', () => {
