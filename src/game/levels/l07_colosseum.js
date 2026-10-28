@@ -1,6 +1,9 @@
 // Level 7 - Ancient Rome: the Colosseum. Two wave arenas (the camera locks and gladiators, hoplites and a war elephant
 // pour in until every wave is dead), a chariot ride at full speed past rival chariots, then the Chariot Champion in
 // the main arena. Shoot the driver from the ledges: the chariot cannot reach you there.
+//
+// The way in is over Rome's seven hills: a gentle rise at the gate and a 45-degree ramp up to the terrace of the promenade. The
+// wave arenas, the chariot ride and the champion's arena are level, because they are fought on the sand.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -14,25 +17,35 @@ export const colosseum = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 6 });
 
-    // --- 1. The gladiators' gate ---
-    let s = b.flat(32);
+    // --- 1. The gladiators' gate: up an olive-covered rise and down the far side ---
+    let s = b.flat(12);
     s.capsule('E', 6, 6);
     s.prompt('GLADIATORS RUSH YOU. KEEP YOUR DISTANCE', 2, 14);
-    s.enemy('gladiator', 14).enemy('gladiator', 20);
-    s.enemy('hoplite', 26);
-    s.medals(9, 11, 3, 2);
+    b.slope(1, { angle: 22 });
+    s = b.flat(6);
+    s.enemy('gladiator', 3);
+    s.medalsAbove(0, 3, 2, 2);
+    b.slope(-1, { angle: 22 });
+    s = b.flat(16);
+    s.enemy('gladiator', 4);
+    s.enemy('hoplite', 11);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 2. The promenade: archers on the balconies ---
-    s = b.flat(30);
+    // --- 2. The promenade: a 45-degree ramp up to the terrace, archers on the balconies ---
+    s = b.flat(8);
     s.checkpoint(1);
-    b.platform(s.x0 + 6, 10, 7);
-    b.platform(s.x0 + 18, 10, 7);
-    s.enemy('archer', 8, { row: 10 }).enemy('archer', 21, { row: 10 });
+    b.slope(2, { angle: 45 });
+    s = b.flat(26);
+    const balcony = b.gy - 4;
+    b.platform(s.x0 + 6, balcony, 7);
+    b.platform(s.x0 + 18, balcony, 7);
+    s.enemy('archer', 8, { row: balcony }).enemy('archer', 21, { row: balcony });
     s.enemy('gladiator', 12).enemy('gladiator', 16);
-    s.enemy('drone', 24, { row: 7 });
-    s.capsule('S', 4, 6);
-    s.medals(7, 8, 4, 2);
+    s.enemy('drone', 24, { row: b.rowAbove(7) });
+    s.capsule('S', 4, b.rowAbove(8));
+    s.medalsAbove(7, 4, 4, 2);
+    b.slope(-2, { angle: 45 });
+    b.flat(2);
 
     // --- 3. First arena: three waves ---
     s = b.flat(8);
@@ -88,14 +101,20 @@ export const colosseum = {
     b.platform(arena.x1 - 10, 10, 6);
     s = b.flat(6);
 
-    // --- 6. The gate of the champions ---
-    s = b.flat(24);
+    // --- 6. The gate of the champions: the last rise before the sand ---
+    s = b.flat(6);
     s.checkpoint(1);
-    s.enemy('hoplite', 6).enemy('hoplite', 10).enemy('gladiator', 15);
-    s.enemy('archer', 12, { row: 10 });
-    b.platform(s.x0 + 9, 10, 7);
-    s.capsule('H', 4, 6);
-    s.medals(8, 8, 3, 2);
+    s.enemy('hoplite', 4);
+    b.slope(2, { angle: 22 });
+    s = b.flat(18);
+    const gallery = b.gy - 4;
+    b.platform(s.x0 + 9, gallery, 7);
+    s.enemy('hoplite', 3).enemy('gladiator', 8);
+    s.enemy('archer', 12, { row: gallery });
+    s.capsule('H', 4, b.rowAbove(8));
+    s.medalsAbove(5, 3, 3, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(4);
 
     // --- 7. Approach and arena: the Chariot Champion ---
     s = b.flat(16);

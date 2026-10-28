@@ -2,6 +2,9 @@
 // until you come close, kite soldiers dropping firecrackers, and crates of fireworks whose rockets burst into falling
 // sparks (watch the rocket, step away from where it will burst). The middle of the wall is a forced march; then a breach
 // in the stonework, a statue garden, and the Dragon Kite Fortress waiting over the last tower.
+//
+// The wall follows the ridge it was built on: 22-degree rises, 45-degree spurs up to the watchtowers and rubble heaps where the
+// wall has fallen. The forced march keeps its level crenellations (the camera drives it), and so does the arena.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -15,40 +18,50 @@ export const greatWall = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 7 });
 
-    // --- 1. The gate: a guard of clay wakes up ---
-    let s = b.flat(34);
+    // --- 1. The gate: a guard of clay wakes up on the first rise of the ridge ---
+    let s = b.flat(16);
     s.capsule('E', 6, 6);
     s.prompt('CLAY GUARDS WAKE WHEN YOU COME CLOSE. THEIR SHIELDS STOP FLAT SHOTS', 2, 20);
-    s.enemy('terracotta', 18);
-    s.enemy('archer', 28);
-    s.medals(8, 11, 3, 2);
     b.prop('banner', s.x0 + 5);
-    b.prop('banner', s.x0 + 22);
+    b.slope(2, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('terracotta', 4);
+    s.medalsAbove(3, 3, 2, 2);
+    b.prop('banner', s.x0 + 8);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(12);
+    s.enemy('archer', 6);
+    b.prop('banner', s.x0 + 2);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 2. Fireworks: the first crates ---
-    s = b.flat(34);
+    // --- 2. Fireworks: the first crates, and the 45-degree climb of the wall up a spur ---
+    s = b.flat(10);
     s.checkpoint(1);
     s.prompt('WATCH THE ROCKET. SPARKS RAIN DOWN WHERE IT BURSTS', 1, 18);
-    s.enemy('firecrate', 8);
-    s.enemy('archer', 17);
-    s.enemy('firecrate', 24);
-    s.enemy('terracotta', 29);
-    b.prop('banner', s.x0 + 12);
-    b.prop('banner', s.x0 + 31, { h: 80 });
-    s.capsule('S', 14, 6);
-    s.medals(10, 10, 4, 2, 2);
+    s.enemy('firecrate', 7);
+    b.prop('banner', s.x0 + 3);
+    b.slope(2, { angle: 45 });
+    s = b.flat(14);
+    s.enemy('archer', 5);
+    s.enemy('firecrate', 10);
+    b.prop('banner', s.x0 + 1);
+    s.capsule('S', 4, b.rowAbove(8));
+    s.medalsAbove(5, 4, 2, 2, 2);
+    b.slope(-2, { angle: 45 });
+    s = b.flat(10);
+    s.enemy('terracotta', 6);
+    b.prop('banner', s.x0 + 8, { h: 80 });
 
     // --- 3. The watchtower: kites over the battlements ---
     s = b.flat(10);
-    b.up(2);
+    b.slope(2, { angle: 45 });
     s = b.flat(14);
     s.enemy('archer', 6);
     s.enemy('firecrate', 11);
     b.prop('banner', s.x0 + 1, { h: 84 });
     b.prop('banner', s.x0 + 13, { h: 84 });
-    b.platform(s.x0 + 3, 9, 6);
-    b.down(2);
+    b.platform(s.x0 + 3, b.gy - 4, 6);
+    b.slope(-2, { angle: 45 });
     s = b.flat(8);
     s.enemy('kitesoldier', 4, { row: 7 });
     s.enemy('kitesoldier', 8, { row: 6 });
@@ -84,41 +97,53 @@ export const greatWall = {
     s.checkpoint(2);
     s.capsule('R', 5, 6);
 
-    // --- 5. The breach: the wall has fallen away, cross on timbers ---
+    // --- 5. The breach: the wall has fallen away; rubble heaps to climb and gaps to cross on timbers ---
     s = b.flat(8);
+    b.slope(2, { angle: 45 });
+    b.flat(4);
+    b.slope(-2, { angle: 45 });
+    b.flat(2);
     b.pit(5, { fill: 'spikes' });
-    b.platform(b.x - 4, 11, 3);
+    b.platform(b.x - 4, b.gy - 3, 3);
     s = b.flat(10);
     s.enemy('archer', 6);
-    s.enemy('kitesoldier', 3, { row: 7 });
+    s.enemy('kitesoldier', 3, { row: b.rowAbove(7) });
     b.pit(5);
-    b.platform(b.x - 5, 11, 3, { kind: 'one-way' });
+    b.platform(b.x - 5, b.gy - 3, 3, { kind: 'one-way' });
     s = b.flat(12);
     s.checkpoint(1);
     s.enemy('firecrate', 5);
-    s.enemy('kitesoldier', 7, { row: 6 });
+    s.enemy('kitesoldier', 7, { row: b.rowAbove(8) });
     s.enemy('terracotta', 10);
     b.pit(4, { fill: 'spikes' });
     s = b.flat(14);
     s.medals(4, 10, 4, 2, 2);
-    s.enemy('drone', 8, { row: 6 });
+    s.enemy('drone', 8, { row: b.rowAbove(8) });
 
-    // --- 6. The statue garden: a line of clay soldiers, rockets behind ---
-    s = b.flat(36);
+    // --- 6. The statue garden: a line of clay soldiers on the terraces, rockets behind ---
+    s = b.flat(12);
     s.checkpoint(1);
     s.prompt('MORE GUARDS ARE WAKING. SHOOT FROM ABOVE OR GET BEHIND THEM', 1, 18);
     s.enemy('terracotta', 8);
-    s.enemy('terracotta', 14);
-    s.enemy('firecrate', 19);
-    s.enemy('terracotta', 24);
-    s.enemy('archer', 30, { row: 13 });
-    s.capsule('H', 12, 6);
     b.prop('banner', s.x0 + 3);
-    b.prop('banner', s.x0 + 33, { h: 80 });
-    b.platform(s.x0 + 16, 10, 8);
-    s.medals(18, 8, 3, 2);
+    b.slope(2, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('terracotta', 3);
+    s.enemy('firecrate', 7);
+    s.capsule('H', 4, b.rowAbove(8));
+    b.platform(s.x0 + 1, b.gy - 4, 8);
+    s.medalsAbove(1, 3, 6, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(14);
+    s.enemy('terracotta', 4);
+    s.enemy('archer', 9, { row: b.rowAbove(1) });
+    b.prop('banner', s.x0 + 12, { h: 80 });
 
     // --- 7. The last tower and the dragon ---
+    s = b.flat(6);
+    b.slope(2, { angle: 45 });
+    b.flat(4);
+    b.slope(-2, { angle: 45 });
     s = b.flat(16);
     s.checkpoint(1);
     s.prompt('A DRAGON KITE! SHOOT UP AT THE PEARL IN ITS BROW', 1, 14);

@@ -114,7 +114,7 @@ export const THEMES = {
       { k: 'forest', c: '#5a7a4a', y: 226, a: 50, s: 0.38, seed: 26, n: 12, species: [['cypress', 3], ['bush', 2], ['oak', 1]], trunk: '#3a4a30' },
       { k: 'pillars', c: '#e8e0d0', y: 190, a: 30, s: 0.5, n: 6, w: 10, seed: 25 },
     ],
-    tiles: { solid: stone('#d0c8b8', '#8a8070', { top: '#ece6d8', fringe: grass('#6a9a5a') }), wall: stone('#bdb4a2', '#7a7060'), platform: { kind: 'stone', base: '#e0d8c8', dark: '#8a8070' }, spike: '#c0c0c8' },
+    tiles: { solid: earth('#a8885a', '#6e5232', '#7aa058', { sub: '#94764a', deep: '#6e5232', fringe: grass('#6a9a5a'), under: roots('#4a3420') }), wall: stone('#bdb4a2', '#7a7060'), platform: { kind: 'stone', base: '#e0d8c8', dark: '#8a8070' }, spike: '#c0c0c8' },
     decor: [{ k: 'tuft', c: '#6a9a5a', p: 0.12 }, { k: 'drygrass', c: '#a8a068', p: 0.1 }, { k: 'pebbles', c: '#a89c88', p: 0.1 }],
     life: ['birds', 'gulls'], front: { kind: 'grass', c: '#3a5a2a' },
     water: WATER, lava: LAVA,

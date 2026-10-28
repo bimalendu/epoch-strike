@@ -54,7 +54,7 @@ test('a slope sprite is cached, and the cache is keyed by the variant the painte
 });
 
 test('earth, rock and sand lose their exposed top corners (a 2 px chamfer); masonry keeps square ones', () => {
-  for (const [name, round] of [['jungle', true], ['volcano', true], ['pyramid', true], ['troy', false], ['castle', false]]) {
+  for (const [name, round] of [['jungle', true], ['volcano', true], ['pyramid', true], ['troy', true], ['castle', false]]) {
     const theme = getTheme(name);
     const both = tileSprite(theme, T.SOLID, TOP | LEFT | RIGHT, 0, T);
     assert.equal(alphaAt(both, 0, 0) === 0, round, `${name}: top left corner`);

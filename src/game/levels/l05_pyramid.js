@@ -1,6 +1,9 @@
 // Level 5 - Ancient Egypt: Pyramid of Ra. Quicksand that drowns whoever stands still, tomb halls where stone crushers
 // slam down on a rhythm (watch the floor markers), mummies and scarab swarms, and a hidden 1UP up a sarcophagus
 // stair. The Animated Sphinx guards the end: shoot up at its gem from the two sandstone ledges.
+//
+// Outside the tomb the desert rolls: 22-degree dunes with the quicksand lying in the hollows between them, and a 45-degree
+// climb up the dune ridge and down the far side. The tomb halls stay level (the crushers need a flat floor under them).
 
 import { LevelBuilder } from '../levelgen.js';
 import { T } from '../tiles.js';
@@ -23,31 +26,47 @@ export const pyramid = {
     const b = new LevelBuilder({ ...def, id: 4 });
     const tombs = []; // [x0, x1) columns with a stone ceiling
 
-    // --- 1. Desert road: a first taste of sand ---
-    let s = b.flat(30);
+    // --- 1. Desert road: a dune, then the first taste of sand lying in the hollow beyond it ---
+    let s = b.flat(16);
     s.capsule('E', 6, 6);
-    s.enemy('scarab', 14).enemy('scarab', 16);
-    s.enemy('mummy', 22);
-    s.prompt('QUICKSAND. KEEP MOVING OR YOU SINK', 24, 8);
-    s.medals(10, 11, 3, 2);
+    s.enemy('scarab', 14);
+    b.slope(1, { angle: 22 });
+    s = b.flat(4);
+    s.medalsAbove(0, 3, 2, 2);
+    b.slope(-1, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('scarab', 6);
+    s.enemy('mummy', 8);
+    s.prompt('QUICKSAND. KEEP MOVING OR YOU SINK', 0, 10);
     b.quicksand(4);
     s = b.flat(16);
     s.checkpoint(1);
     s.enemy('mummy', 6).enemy('mummy', 10);
     s.enemy('scarab', 13);
 
-    // --- 2. The dune ridge: sand below, a safe stone road above ---
-    s = b.flat(14);
-    s.enemy('drone', 8, { row: 7 });
-    s.enemy('mummy', 10);
+    // --- 2. The dune ridge: a hollow with quicksand and a stone road over it, then a 45-degree climb to the crest ---
+    s = b.flat(8);
+    s.enemy('drone', 6, { row: b.rowAbove(7) });
+    b.slope(2, { angle: 22 });
+    s = b.flat(4);
+    s.enemy('mummy', 2);
+    b.slope(-2, { angle: 22 });
+    b.flat(2);
     const sand = b.quicksand(7);
-    b.platform(sand.x0 - 1, 10, 4);
-    b.platform(sand.x0 + 4, 10, 5);
-    s = b.flat(22);
-    s.enemy('mummy', 4).enemy('mummy', 8);
-    s.enemy('drone', 12, { row: 6 }).enemy('drone', 16, { row: 8 });
+    b.platform(sand.x0 - 1, b.gy - 4, 4);
+    b.platform(sand.x0 + 4, b.gy - 4, 5);
+    b.flat(2);
+    b.slope(2, { angle: 22 });
+    s = b.flat(4);
+    s.enemy('mummy', 2);
+    b.slope(2, { angle: 45 });
+    s = b.flat(16);
+    s.enemy('mummy', 4);
+    s.enemy('drone', 8, { row: b.rowAbove(6) }).enemy('drone', 12, { row: b.rowAbove(8) });
     s.capsule('M', 3, 6);
-    s.medals(-8, 8, 4, 2, 2);
+    s.medalsAbove(3, 4, 2, 2, 2);
+    b.slope(-2, { angle: 45 });
+    b.slope(-2, { angle: 22 });
 
     // --- 3. The tomb door: the first crusher, with a lesson ---
     s = b.flat(8);
@@ -71,33 +90,39 @@ export const pyramid = {
     s.pickup('bomb', 44, 11);
     s.enemy('trooper', 46);
 
-    // --- 5. Sarcophagus stair: a hidden 1UP up the middle of the tomb ---
-    s = b.flat(30);
-    s.enemy('mummy', 8).enemy('mummy', 12);
-    s.enemy('drone', 18, { row: 6 });
-    const cx = s.x0 + 18;
-    b.platform(cx, 11, 4);
-    b.platform(cx + 4, 8, 4);
-    b.platform(cx + 1, 5, 4);
-    b.addPickup('1up', cx + 2, 4);
-    s.medals(2, 11, 3, 2);
+    // --- 5. Sarcophagus stair: a 45-degree ramp up into the tomb's upper gallery, and a hidden 1UP over its ledges ---
+    s = b.flat(12);
+    s.enemy('mummy', 8).enemy('mummy', 10);
+    b.slope(3, { angle: 45 });
+    s = b.flat(18);
+    s.enemy('drone', 12, { row: b.rowAbove(8) });
+    const cx = s.x0 + 6;
+    b.platform(cx, b.gy - 3, 4);
+    b.platform(cx + 4, b.gy - 6, 4);
+    b.addPickup('1up', cx + 5, b.gy - 7);
+    s.medalsAbove(11, 3, 2, 2);
+    b.slope(-3, { angle: 45 });
 
-    // --- 6. Treasury sands: the widest quicksand, and stone ledges to avoid it ---
+    // --- 6. Treasury sands: a hollow between two dunes with the widest quicksand, and stone ledges to avoid it ---
     s = b.flat(8);
     s.checkpoint(1);
     s.enemy('mummy', 4);
+    b.slope(1, { angle: 22 });
+    b.flat(3);
+    b.slope(-1, { angle: 22 });
+    b.flat(2);
     const wide = b.quicksand(8);
-    b.platform(wide.x0 + 1, 10, 3);
-    b.platform(wide.x0 + 4, 9, 3);
+    b.platform(wide.x0 + 1, b.gy - 4, 3);
+    b.platform(wide.x0 + 4, b.gy - 5, 3);
     s = b.flat(16);
     s.enemy('mummy', 4).enemy('scarab', 7).enemy('scarab', 9);
-    s.enemy('drone', 11, { row: 7 });
+    s.enemy('drone', 11, { row: b.rowAbove(7) });
     s.capsule('B', 3, 6);
     b.pit(4, { fill: 'spikes' });
     s = b.flat(20);
     s.enemy('mummy', 5).enemy('mummy', 9).enemy('trooper', 13);
     s.enemy('pod', 16, { item: 'E' });
-    s.medals(2, 10, 3, 2);
+    s.medalsAbove(2, 3, 3, 2);
 
     // --- 7. Approach and arena: the Animated Sphinx ---
     s = b.flat(18);
