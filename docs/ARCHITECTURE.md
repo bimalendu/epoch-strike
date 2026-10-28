@@ -357,6 +357,24 @@ rather than a guess about players, and a change to a level's medals shows up as 
 README's level table against the game. `.github/workflows/ci.yml` runs `npm test` on every push and pull request;
 `pages.yml` runs the tests, copies the three paths into `_site` and deploys with the official Pages actions.
 
+## Visual polish
+
+Everything here is art or scene glue: the simulation only ever sets `e.flash` and pushes events, and cosmetic randomness
+still comes from `world.fxRand`.
+
+**Combat feel.**
+* **Hit flash** (`art/hit.js`). `drawEnemy` and every custom painter start with `ctx = flashCtx(ctx, e)`. While `e.flash` is
+  above 0.06 s (a boss: 0.04 s) the painter gets a view of the canvas that mixes every colour toward white (`SPRITE_MIX` 0.8,
+  `BOSS_MIX` 0.5: a boss only brightens, because its weak points are read by colour) and swaps every image for `hitImage(img)`,
+  a cached white copy made by `lightenedCopy` (`engine/gfx.js`, which reads pixels from the software canvas in Node and from
+  `getImageData` in a browser). `warm.js` builds the copies for every enemy frame set. A new custom painter needs the one line.
+* **Muzzle flash** (`fx.muzzle`): a core and a spike along the aim in the weapon's own `color`.
+* **Kills** add a white pop ring and pieces in the enemy's own `pal` colours; bullets that hit a wall flash.
+* **Respawn** draws a column of light (`fx.beamIn`).
+* **Hit-stop and slow motion** live in `PlayScene`, never in the world: `HIT_STOP` frames of nothing moving on a player death
+  (3), a boss phase change (4, from the `bossPhase` event) and a boss going down (5), then `BOSS_SLOWMO` seconds of the world
+  stepping every other frame. Tests that wait out a death have to allow `HIT_STOP.death` frames of slack.
+
 ## Dev tools
 
 * `npm run shots` - menu, play, pause, results... into `docs/screenshots`.

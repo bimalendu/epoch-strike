@@ -11,7 +11,7 @@ import { weaponDef } from './weapons.js';
 import { spawnEnemy, updateEnemies, damageEnemy } from './enemies.js';
 import { spawnPickup, updatePickups } from './pickups.js';
 import './bosses.js'; // registers every boss def and the boss archetype
-import { spark, flash, corpse, popup, explosion, updateFx, casing } from './fx.js';
+import { spark, flash, corpse, popup, explosion, updateFx, casing, muzzle, beamIn } from './fx.js';
 import { launchRocket, gasCloud } from './rocket.js';
 import { makeSwing, stepSwing } from './swing.js';
 import { TANK_GUN, hitTank, crushable, tankZoneAt } from './tank.js';
@@ -498,7 +498,7 @@ export class World {
     p.fireT = wd.cooldown / (p.rapid && p.mode !== 'tank' ? 1.5 : 1);
     this.lightPulse = 1; // muzzle flash: lights up dark caves for a moment
     this.sfx(wd.sfx || 'shoot');
-    flash(this, m.x, m.y, '#fff7c2');
+    muzzle(this, m, wd.color);
     if (p.mode !== 'tank' && CASING_WEAPONS.has(p.weapon)) casing(this, m.x - p.face * 5, m.y + 1, p.face);
   }
 
@@ -544,6 +544,7 @@ export class World {
     this.supplyTank(x);
     this.supplyBike(x);
     this.ebullets.length = 0; // fair respawn: no bullets left hanging in the air
+    beamIn(this, x, y);
   }
 
   /** Where to put the player after a death: the last stable ground, kept inside the camera. */
@@ -786,7 +787,8 @@ export class World {
         continue;
       }
       if (!b.ghost && this.solidAtPx(b.x, b.y)) {
-        spark(this, b.x, b.y, '#d8d0c0', 2, 40);
+        spark(this, b.x, b.y, '#d8d0c0', 3, 50);
+        if (b.kind !== 'flame') flash(this, b.x, b.y, '#fff7c2');
         if (b.onWall) b.onWall(b, this);
         b.dead = true;
         continue;

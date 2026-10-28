@@ -3,6 +3,7 @@
 
 import { Painter, lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
+import { flashCtx } from './hit.js';
 
 function disc(ctx, cx, cy, r, color) {
   ctx.fillStyle = color;
@@ -20,7 +21,7 @@ function drawCatapult(ctx, e, ox, oy) {
   const face = e.facing || 1;
   const tele = e.state === 'tele' && d.tele ? 1 - Math.max(0, e.t) / d.tele : 0;
   const reloading = e.state !== 'tele' && e.t > (d.fireEvery || 3) * 0.55; // just fired: the cup is empty
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const R = (lx, ly, w, h, col) => {
     ctx.fillStyle = col;
     ctx.fillRect(face > 0 ? x + lx : x - lx - w, y + ly, w, h);

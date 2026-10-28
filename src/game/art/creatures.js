@@ -6,6 +6,7 @@
 
 import { Painter, blit, lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
+import { flashCtx } from './hit.js';
 
 function disc(ctx, cx, cy, r, color) {
   ctx.fillStyle = color;
@@ -116,7 +117,7 @@ function plantBase() {
 function drawPlant(ctx, e, ox, oy, f) {
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   blit(ctx, f.idle, x - f.ox, y - f.h);
   const a = e.ang === undefined ? -Math.PI / 2 : e.ang;
   const hx = x + Math.cos(a) * 9;
@@ -145,7 +146,7 @@ function plant() {
 function drawPod(ctx, e, ox, oy) {
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const shell = '#565a70';
   const dark = '#2a2c3a';
   // base ring
@@ -255,7 +256,7 @@ function nestFrame(def, beat) {
 function drawNest(ctx, e, ox, oy, f) {
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   blit(ctx, f.run[Math.floor(e.anim * 1.6) % 2], x - f.ox, y - f.h);
   if (e.puff > 0) disc(ctx, x, y - 11, 4 + Math.round(e.puff * 8), e.def.pal.glow);
   ctx.globalAlpha = 1;
@@ -427,7 +428,7 @@ function drawCannon(ctx, e, ox, oy, f) {
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
   const pal = d.pal;
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const a = e.ang === undefined ? -Math.PI / 2 : e.ang;
   // carriage
   ctx.fillStyle = shade(pal.body, -0.35);

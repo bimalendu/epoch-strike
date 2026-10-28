@@ -115,6 +115,34 @@ export function drawFx(ctx, world, ox, oy) {
         ctx.fillRect(x - 2, y - 2, 5, 5);
         break;
       }
+      case 'muzzle': {
+        // a bright core with a spike along the aim for the first frames, then a smaller one
+        const big = f.life > f.max * 0.5;
+        ctx.fillStyle = f.col;
+        for (let i = 1, n = big ? 4 : 2; i <= n; i++) {
+          ctx.fillRect(Math.round(x + f.dx * i * 2 - 1), Math.round(y + f.dy * i * 2 - 1), 2, 2);
+        }
+        if (big) {
+          ctx.fillRect(Math.round(x - f.dy * 2 - 1), Math.round(y + f.dx * 2 - 1), 2, 2);
+          ctx.fillRect(Math.round(x + f.dy * 2 - 1), Math.round(y - f.dx * 2 - 1), 2, 2);
+        }
+        ctx.fillStyle = '#ffffff';
+        const r = big ? 2 : 1;
+        ctx.fillRect(x - r, y - r, r * 2 + 1, r * 2 + 1);
+        break;
+      }
+      case 'beam': {
+        const k = f.t / f.dur;
+        const w = Math.max(2, Math.round(14 * (1 - k)));
+        ctx.globalAlpha = 0.55 * (1 - k * 0.6);
+        ctx.fillStyle = '#bfeaff';
+        ctx.fillRect(x - (w >> 1), y - 48, w, 48);
+        ctx.globalAlpha = 1 - k * 0.5;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x - 1, y - 48, 2, 48);
+        ctx.globalAlpha = 1;
+        break;
+      }
       case 'corpse': {
         const S = playerSprites();
         const img = S.ball[Math.floor(f.t * 12) % 4];

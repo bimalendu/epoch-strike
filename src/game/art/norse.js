@@ -2,6 +2,7 @@
 
 import { shade } from './common.js';
 import { Painter } from '../../engine/gfx.js';
+import { flashCtx } from './hit.js';
 
 // The serpent is a chain of discs following the path the head has flown, with a fanged head on the end.
 function drawSerpent(ctx, e, ox, oy, f) {
@@ -24,7 +25,7 @@ function drawSerpent(ctx, e, ox, oy, f) {
     return;
   }
   if (e.state !== 'leap' || !e.trail || e.trail.length < 2) return;
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.5;
+  ctx = flashCtx(ctx, e);
   const dark = pal.body;
   const lit = shade(pal.body, 0.3);
   // body discs along the trail, thinning toward the tail; nothing is drawn below the waterline

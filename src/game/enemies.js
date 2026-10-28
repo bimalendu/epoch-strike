@@ -3,7 +3,7 @@
 
 import { TILE, VIEW_W, VIEW_H } from './constants.js';
 import { enemyDef } from './enemy_defs.js';
-import { explosion, spark } from './fx.js';
+import { explosion, spark, debris, ring } from './fx.js';
 import { spawnPickup, randomWeaponItem } from './pickups.js';
 import { ARCH, mineBlast } from './ai.js';
 import { bossDamage, bossDown } from './boss.js';
@@ -148,11 +148,23 @@ export function damageEnemy(world, e, dmg, bullet, quiet = false) {
   return true;
 }
 
+/** The colours an enemy is painted in (its `pal`), so the pieces that fly off look like it. */
+function bodyColors(def) {
+  const own = def.pal ? Object.values(def.pal).filter((v) => typeof v === 'string' && v[0] === '#') : [];
+  return own.length ? own : null;
+}
+
 export function killEnemy(world, e, silent = false) {
   if (!e.alive) return;
   e.alive = false;
   const size = e.h > 40 ? 1 : 0;
   explosion(world, e.x, e.cy, size);
+  if (!e.def.boss) {
+    // a white pop, and bits of the enemy itself
+    ring(world, e.x, e.cy, '#ffffff', size ? 26 : 16, 0.2);
+    const own = bodyColors(e.def);
+    if (own) debris(world, e.x, e.cy, own, size ? 8 : 5, 100);
+  }
   if (!silent) world.sfx(size ? 'bigBoom' : 'boom');
   world.events.push({ type: 'kill', id: e.id, arch: e.arch, score: e.def.score ?? 100, x: e.x, y: e.cy, enemy: e });
   // enemies carrying an item (capsules, pillboxes) release it

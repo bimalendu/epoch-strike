@@ -4,6 +4,7 @@
 import { Painter, blit } from '../../engine/gfx.js';
 import { VIEW_W } from '../constants.js';
 import { shade } from './common.js';
+import { flashCtx } from './hit.js';
 
 // ---- scarab beetle (runner that leaps) ----
 function scarabFrame(def, frame, hot = false) {
@@ -90,7 +91,7 @@ function drawElephant(ctx, e, ox, oy, f) {
   let img = e.state === 'charge' ? f.run[Math.floor(e.anim * 1.6) % f.run.length]
     : Math.abs(e.vx) > 1 ? f.run[Math.floor(e.anim) % f.run.length] : f.idle;
   if (e.state === 'tele') img = Math.floor(e.t * 14) % 2 === 0 ? f.hotRear : f.rear;
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   blit(ctx, img, e.x - ox - f.ox, e.y - oy - f.h, e.face < 0, false);
   ctx.globalAlpha = 1;
   if (e.state === 'charge' && Math.floor(e.anim * 3) % 2 === 0) {
@@ -118,6 +119,7 @@ function elephant(def) {
 
 // ---- rival chariot: two horses and a driver, drawn directly (it crosses the whole screen) ----
 function drawChariot(ctx, e, ox, oy) {
+  ctx = flashCtx(ctx, e);
   const d = e.def;
   const dir = e.face || -1;
   const cx = Math.round(e.x - ox);

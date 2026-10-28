@@ -11,6 +11,7 @@ import { ENEMY_DEFS } from '../enemy_defs.js';
 import '../bosses.js'; // registers every boss def before the list below is built
 import { playerSprites } from './player.js';
 import { warmFx } from './fx.js';
+import { warmHitFrames } from './hit.js';
 import { warmHud } from './hud.js';
 import { warmPickups } from './pickups.js';
 
@@ -20,7 +21,7 @@ export function warmTasks() {
   for (const [id, theme] of Object.entries(THEMES)) {
     (theme.layers || []).forEach((layer, i) => tasks.push({ name: `scenery ${id}:${i}`, run: () => sceneryLayer(`${theme.id || id}:${i}`, layer) }));
   }
-  for (const [id, def] of Object.entries(ENEMY_DEFS)) tasks.push({ name: `enemy ${id}`, run: () => enemyFrames(def) });
+  for (const [id, def] of Object.entries(ENEMY_DEFS)) tasks.push({ name: `enemy ${id}`, run: () => warmHitFrames(enemyFrames(def)) });
   tasks.push({ name: 'player', run: () => playerSprites() });
   tasks.push({ name: 'effects', run: () => warmFx() });
   tasks.push({ name: 'hud', run: () => warmHud() });

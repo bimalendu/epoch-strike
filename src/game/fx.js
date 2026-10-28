@@ -89,6 +89,17 @@ export function flash(world, x, y, color = '#ffffff') {
   world.fx.push({ k: 'flash', x, y, life: 0.05, max: 0.05, col: color });
 }
 
+/** The flash at the end of the barrel: `m` is the muzzle ({x, y, dx, dy}), `color` the weapon's colour. */
+export function muzzle(world, m, color = '#fff7c2') {
+  world.fx.push({ k: 'muzzle', x: m.x, y: m.y, dx: m.dx, dy: m.dy, life: 0.07, max: 0.07, col: color });
+}
+
+/** A column of light that narrows to nothing where the soldier is put back after a death. */
+export function beamIn(world, x, y) {
+  world.fx.push({ k: 'beam', x, y, t: 0, dur: 0.45, life: 1 });
+  ring(world, x, y - 14, '#bfeaff', 30, 0.4);
+}
+
 export function ring(world, x, y, color = '#ffffff', r1 = 36, dur = 0.35) {
   world.fx.push({ k: 'ring', x, y, t: 0, dur, r1, col: color });
 }
@@ -110,6 +121,7 @@ export function updateFx(world, dt) {
         f.life -= dt;
         break;
       case 'boom':
+      case 'beam':
       case 'ring':
         f.t += dt;
         f.life = f.t < f.dur ? 1 : 0;
@@ -123,6 +135,7 @@ export function updateFx(world, dt) {
         f.life -= dt;
         break;
       case 'flash':
+      case 'muzzle':
       case 'zap':
         f.life -= dt;
         break;

@@ -15,6 +15,8 @@ export const RESPAWN_DELAY = 1.3; // seconds between death and the player coming
 export const GAMEOVER_DELAY = 1.8; // seconds between the last death and the Continue screen
 export const CLEAR_DELAY = 1.8; // seconds of victory before the results screen
 const CARD_TIME = 2.2; // level name card
+export const HIT_STOP = { death: 3, phase: 4, bossDown: 5 }; // frames the whole game holds still for
+export const BOSS_SLOWMO = 0.8; // seconds the boss's death plays at half speed
 
 export class PlayScene {
   /**
@@ -48,6 +50,9 @@ export class PlayScene {
     this.paused = false;
     this.ended = false;
     this.clearT = -1; // >= 0 while the victory pause runs
+    this.freezeF = 0; // frames of hit-stop left: the world does not step at all
+    this.slowT = 0; // seconds of slow motion left: the world steps every other frame
+    this.slowSkip = false;
     this.cardT = resume ? 0 : CARD_TIME;
     this.pauseMenu = this.makePauseMenu();
   }
@@ -110,6 +115,16 @@ export class PlayScene {
     }
 
     const w = this.world;
+    // hit-stop and slow motion live here, not in the world: the world still only ever steps by whole DTs
+    if (this.freezeF > 0) {
+      this.freezeF--;
+      return;
+    }
+    if (this.slowT > 0) {
+      this.slowT -= dt;
+      this.slowSkip = !this.slowSkip;
+      if (this.slowSkip) return;
+    }
     this.run.timeThisLevel += dt;
     if (this.cardT > 0) this.cardT -= dt;
     w.update(input, dt);
@@ -140,6 +155,7 @@ export class PlayScene {
         run.lives.loseLife();
         run.deathsThisLevel++;
         run.totalDeaths++;
+        this.freezeF = HIT_STOP.death;
         break;
       case 'checkpoint':
         run.checkpoint = { levelIndex: this.levelIndex, x: e.x, y: e.y };
@@ -184,8 +200,13 @@ export class PlayScene {
         // echoes of a boss rush use the ordinary boss theme; the level's own boss may have a track of its own
         if (this.game.audio) this.game.audio.music(e.echo ? 'boss' : this.level.bossMusic || 'boss');
         break;
+      case 'bossPhase':
+        this.freezeF = HIT_STOP.phase;
+        break;
       case 'bossDying':
         if (this.game.audio) this.game.audio.stopMusic(0.5);
+        this.freezeF = HIT_STOP.bossDown;
+        this.slowT = BOSS_SLOWMO;
         break;
       case 'levelClear':
         this.startClear();

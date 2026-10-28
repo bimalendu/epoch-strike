@@ -19,6 +19,7 @@ import { registerWar } from './war.js';
 import { registerCoast } from './coast.js';
 import { registerModern } from './modern.js';
 import { drawEnemyBulletArt } from './ebullets.js';
+import { flashCtx } from './hit.js';
 
 const cache = new Map();
 
@@ -286,7 +287,7 @@ export function drawEnemy(ctx, e, ox, oy) {
     custom(ctx, e, ox, oy, f);
     return;
   }
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const moving = def.flyer || (Math.abs(e.vx) > 1 && e.grounded);
   let img = moving ? f.run[Math.floor(e.anim) % f.run.length] : f.idle;
   // telegraph: flicker to the bright frame before an attack

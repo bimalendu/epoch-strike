@@ -285,6 +285,7 @@ export function bossUpdate(e, world, dt) {
       world.sfx('bigBoom');
       ring(world, e.x, e.cy, '#ffffff', 90, 0.6);
       popup(world, e.x, e.y - e.h - 10, 'ENRAGED', '#ff6a6a');
+      world.events.push({ type: 'bossPhase', id: e.id, phase: want });
       if (d.onPhase) d.onPhase(e, world, want);
     }
   }

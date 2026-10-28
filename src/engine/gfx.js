@@ -119,3 +119,30 @@ export function lineTo(ctx, x0, y0, x1, y1, color, t = 1) {
     if (e2 <= dx) { err += dx; y0 += sy; }
   }
 }
+
+/**
+ * A copy of `img` with every visible pixel mixed toward white by `amount` (0..1); alpha is kept. Used for hit flashes.
+ * Reads pixels straight from the software canvas in Node, and through getImageData in a browser.
+ */
+export function lightenedCopy(img, amount) {
+  const w = img.width;
+  const h = img.height;
+  const out = createCanvas(w, h);
+  const src = img.data || img.getContext('2d').getImageData(0, 0, w, h).data;
+  const px = out.data || new Uint8ClampedArray(w * h * 4);
+  for (let i = 0; i < px.length; i += 4) {
+    const a = src[i + 3];
+    if (a === 0) continue;
+    px[i] = src[i] + (255 - src[i]) * amount;
+    px[i + 1] = src[i + 1] + (255 - src[i + 1]) * amount;
+    px[i + 2] = src[i + 2] + (255 - src[i + 2]) * amount;
+    px[i + 3] = a;
+  }
+  if (!out.data) {
+    const c = ctx2d(out);
+    const id = c.createImageData(w, h);
+    id.data.set(px);
+    c.putImageData(id, 0, 0);
+  }
+  return out;
+}

@@ -3,6 +3,7 @@
 
 import { Painter, lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
+import { flashCtx } from './hit.js';
 
 function disc(ctx, cx, cy, r, color) {
   ctx.fillStyle = color;
@@ -18,7 +19,7 @@ function drawBunker(ctx, e, ox, oy) {
   const pal = d.pal;
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const f = e.facing || e.face || 1;
   // the sandbag skirt and the concrete body
   ctx.fillStyle = pal.dark;
@@ -66,7 +67,7 @@ function drawAtGun(ctx, e, ox, oy) {
   const pal = d.pal;
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const f = e.facing || e.face || 1;
   const a = e.ang === undefined ? (f > 0 ? 0 : Math.PI) : e.ang;
   // trail legs
@@ -107,7 +108,7 @@ function atgun() {
 function drawMine(ctx, e, ox, oy) {
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy) - Math.round(e.lift || 0);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const tele = e.state === 'tele';
   if (tele) {
     // spikes of sand and a soft shadow where it was

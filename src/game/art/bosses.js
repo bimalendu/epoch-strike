@@ -4,6 +4,7 @@
 
 import { Painter, lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
+import { flashCtx } from './hit.js';
 
 export function brush(ctx, cx, cy, face) {
   const mx = (lx, w = 0) => Math.round(face > 0 ? cx + lx : cx - lx - w);
@@ -40,7 +41,7 @@ export function drawBoss(fn) {
     const pose = bossPose(e);
     let jx = 0;
     if (pose.state === 'dying') jx = Math.round(Math.sin(e.bs.age * 70) * 2);
-    if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.6;
+    ctx = flashCtx(ctx, e);
     fn(ctx, e, Math.round(e.x - ox) + jx, Math.round(e.y - oy), pose, f);
     ctx.globalAlpha = 1;
   };

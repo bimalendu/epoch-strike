@@ -3,6 +3,7 @@
 
 import { Painter, lineTo } from '../../engine/gfx.js';
 import { shade } from './common.js';
+import { flashCtx } from './hit.js';
 
 function disc(ctx, cx, cy, r, color) {
   ctx.fillStyle = color;
@@ -23,7 +24,7 @@ function drawSnowmobile(ctx, e, ox, oy) {
     ctx.fillStyle = col;
     ctx.fillRect(f > 0 ? x + dx : x - dx - w, y + dy, w, h);
   };
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const tele = e.state === 'tele';
   const shake = tele ? (Math.floor((e.t || 0) * 40) % 2 ? 1 : -1) : 0;
   const bob = e.state === 'charge' ? (Math.floor(e.anim * 2) % 2) : 0;
@@ -67,7 +68,7 @@ function drawRack(ctx, e, ox, oy) {
   const pal = d.pal;
   const x = Math.round(e.x - ox);
   const y = Math.round(e.y - oy);
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const a = e.ang === undefined ? -Math.PI / 2 : e.ang;
   // the tracked hull
   ctx.fillStyle = '#22262a';
@@ -113,7 +114,7 @@ function drawCeilGun(ctx, e, ox, oy) {
   const pal = d.pal;
   const x = Math.round(e.x - ox);
   const top = Math.round(e.y - e.h - oy); // the ceiling line
-  if (e.flash > 0 && Math.floor(e.flash * 60) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx = flashCtx(ctx, e);
   const a = e.ang === undefined ? Math.PI / 2 : e.ang;
   // mounting plate and housing
   ctx.fillStyle = shade(pal.body, -0.4);

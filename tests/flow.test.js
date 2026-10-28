@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeGame, stepN } from '../tools/shots.mjs';
 import { registerRoutes } from '../src/scenes/routes.js';
-import { PlayScene, RESPAWN_DELAY, GAMEOVER_DELAY } from '../src/scenes/play.js';
+import { PlayScene, RESPAWN_DELAY, GAMEOVER_DELAY, HIT_STOP } from '../src/scenes/play.js';
 import { GameOverScene, CONTINUE_SECONDS } from '../src/scenes/gameover.js';
 import { MenuScene } from '../src/scenes/menu.js';
 import { NameEntryScene } from '../src/scenes/nameentry.js';
@@ -11,7 +11,8 @@ import { Run } from '../src/game/run.js';
 import { TILE, PLAYER } from '../src/game/constants.js';
 
 const FPS = 60;
-const frames = (s) => Math.ceil(s * FPS) + 2;
+// a death also holds the whole game still for HIT_STOP.death frames, so every wait gets that much slack
+const frames = (s) => Math.ceil(s * FPS) + 2 + HIT_STOP.death;
 
 function start(opts = {}) {
   const { game, canvas } = makeGame();
