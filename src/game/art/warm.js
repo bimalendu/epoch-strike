@@ -16,6 +16,8 @@ import { warmFx, warmFall } from './fx.js';
 import { warmHitFrames } from './hit.js';
 import { skyCanvas } from './sky.js';
 import { warmRelief } from './relief.js';
+import { fogStrip } from './weather.js';
+import { frontStrip } from './front.js';
 import { warmGlow } from './glow.js';
 import { warmVignette } from './vignette.js';
 import { warmHud } from './hud.js';
@@ -29,6 +31,10 @@ export function warmTasks() {
   }
   for (const [id, theme] of Object.entries(THEMES)) tasks.push({ name: `sky ${id}`, run: () => skyCanvas({ ...theme, id }) });
   for (const [id, theme] of Object.entries(THEMES)) tasks.push({ name: `relief ${id}`, run: () => warmRelief(theme.id || id, theme) });
+  for (const [id, theme] of Object.entries(THEMES)) {
+    if (theme.weather && theme.weather.fog) tasks.push({ name: `fog ${id}`, run: () => fogStrip(theme.id || id, theme.weather.fog) });
+    if (theme.front) tasks.push({ name: `front ${id}`, run: () => [0.7, 0.3].forEach((c) => frontStrip(theme.id || id, theme.front, c)) });
+  }
   for (const [id, def] of Object.entries(ENEMY_DEFS)) tasks.push({ name: `enemy ${id}`, run: () => { const f = enemyFrames(def); warmHitFrames(f); warmFall(f); } });
   tasks.push({ name: 'player', run: () => playerSprites() });
   for (const id of Object.keys(WEAPONS)) tasks.push({ name: `gun ${id}`, run: () => gunSprites(id) });

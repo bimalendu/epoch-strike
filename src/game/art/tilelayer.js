@@ -2,6 +2,7 @@
 // change), animated liquids and ambient particles. Pure functions of the world state, no simulation here.
 
 import { createCanvas } from '../../engine/gfx.js';
+import { windShift } from './weather.js';
 import { hash2 } from '../../engine/rng.js';
 import { TILE, VIEW_W, VIEW_H } from '../constants.js';
 import { T, SOLID, SLOPE, floorHeight } from '../tiles.js';
@@ -228,6 +229,7 @@ export function drawAmbient(ctx, theme, camX, time) {
   const kind = theme.fx;
   if (!kind) return;
   const n = kind === 'rain' ? 70 : 34;
+  const wind = windShift(time); // gusts push the light, drifting kinds sideways
   for (let i = 0; i < n; i++) {
     const hx = hash2(i, 1, 5);
     const hy = hash2(i, 2, 5);
@@ -236,7 +238,7 @@ export function drawAmbient(ctx, theme, camX, time) {
     let y;
     switch (kind) {
       case 'snow':
-        x = (hx * VIEW_W + time * 14 * sp - camX * 0.5 + 4000) % VIEW_W;
+        x = (hx * VIEW_W + time * 14 * sp - camX * 0.5 + 4000 + wind * sp) % VIEW_W;
         y = (hy * VIEW_H + time * 28 * sp) % VIEW_H;
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(Math.floor(x + Math.sin(time + i) * 3), Math.floor(y), 2, 2);
@@ -256,19 +258,19 @@ export function drawAmbient(ctx, theme, camX, time) {
         ctx.fillRect(Math.floor(x), Math.floor(y), 1, 2);
         break;
       case 'leaves':
-        x = (hx * VIEW_W + time * 18 * sp - camX * 0.6 + 8000) % VIEW_W;
+        x = (hx * VIEW_W + time * 18 * sp - camX * 0.6 + 8000 + wind * sp) % VIEW_W;
         y = (hy * VIEW_H + time * 22 * sp) % VIEW_H;
         ctx.fillStyle = i % 2 ? '#5aa84a' : '#8ac850';
         ctx.fillRect(Math.floor(x + Math.sin(time * 1.5 + i) * 4), Math.floor(y), 2, 1);
         break;
       case 'petals':
-        x = (hx * VIEW_W + time * 20 * sp - camX * 0.6 + 8000) % VIEW_W;
+        x = (hx * VIEW_W + time * 20 * sp - camX * 0.6 + 8000 + wind * sp) % VIEW_W;
         y = (hy * VIEW_H + time * 20 * sp) % VIEW_H;
         ctx.fillStyle = i % 2 ? '#ff9ac8' : '#ffd0e4';
         ctx.fillRect(Math.floor(x + Math.sin(time * 1.2 + i) * 5), Math.floor(y), 2, 2);
         break;
       default: // dust
-        x = (hx * VIEW_W + time * 24 * sp - camX * 0.8 + 8000) % VIEW_W;
+        x = (hx * VIEW_W + time * 24 * sp - camX * 0.8 + 8000 + wind * 0.5 * sp) % VIEW_W;
         y = (hy * VIEW_H * 0.8 + Math.sin(time + i) * 3) % VIEW_H;
         ctx.globalAlpha = 0.35;
         ctx.fillStyle = '#ffffff';

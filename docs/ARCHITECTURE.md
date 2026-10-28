@@ -375,6 +375,23 @@ The terrain and backdrop try to look like land, not a tile map. Phase by phase:
   the sky's lights and weather (`NO_HAZE`).
 - `fallRect(layer)` gives the rectangle of a waterfall's falling water, so the animated shimmer can be drawn over exactly that.
 
+**Life, weather and foreground** (`art/life.js`, `art/weather.js`, `art/front.js`)
+- All of it is a pure function of `world.time`, the camera and `hash2`, like `drawAmbient`: nothing is stored, nothing uses
+  `fxRand` or the gameplay stream, and a replay looks the same. Quality `low` skips all of it (`render.js`).
+- `theme.life` lists what lives there: `birds` (a V flock and a straggler), `gulls`, `crows`, `pterosaurs`, `bats`, `fireflies`
+  (drawn in front of the terrain, blinking through `flick` so FLASHES: REDUCED slows them) and `fish` (leaping out of the first `lake`
+  layer on that layer's own scroll). A theme with a `waterfall` layer also gets the shimmer: pale streaks sliding over `fallRect(layer)`.
+  `life.js` may make `MAX_CALLS` (100) canvas calls a frame; a test checks every theme.
+- `theme.weather = { fog, fogY, lightning }`: `fog` is a colour for drifting banks (one cached strip, two images), `lightning` a storm
+  with one strike in every 11 s window at a time fixed by `hash2` (`strikeTime`): a jagged bolt and, unless flashes are reduced, a
+  pale wash, blinking twice through `flick`. `windShift(t)` is a bounded two-swell gust that pushes leaves, snow, petals and dust in
+  `drawAmbient`.
+- `theme.front = { kind, c }` is the foreground: grass, ferns, rocks, rubble, cables or snow drifts, at most `FRONT_H` (18) px tall
+  along the bottom edge, scrolling at 1.25x the camera, drawn after the actors and before the darkness. It is a dither of the
+  silhouette (a `thinned` painter, so no alpha and no pixel read-back) at two coverages, and it fades with the soldier's feet: full
+  (0.7) well up the screen, thin (0.3) within 70 px of the bottom edge, gone within 40 px.
+- Together the extras cost at most 150 canvas calls a frame in any theme (a test measures high against low quality).
+
 ## Art
 
 All art is drawn with rectangles by `Painter`, so it renders identically in a browser and in the software canvas used

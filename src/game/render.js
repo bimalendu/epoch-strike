@@ -18,6 +18,9 @@ import { drawVignette, drawHurt } from './art/vignette.js';
 import { setReducedFlashes } from './art/flash.js';
 import { drawProps, drawSwings, drawVents } from './art/props.js';
 import { drawSky, drawParallax, drawTerrain, drawLiquids, drawAmbient } from './art/tilelayer.js';
+import { drawLifeBack, drawLifeFront } from './art/life.js';
+import { drawFog, drawLightning } from './art/weather.js';
+import { drawFront } from './art/front.js';
 
 export function renderWorld(ctx, world) {
   const cam = world.camera;
@@ -29,8 +32,13 @@ export function renderWorld(ctx, world) {
   const glow = fancy && !!theme.glow;
   drawSky(ctx, theme);
   drawParallax(ctx, theme, cam.x, cam.y, cam.tall);
+  if (fancy) {
+    drawLifeBack(ctx, theme, world.time, cam.x); // birds, bats, fish, falling water
+    drawFog(ctx, theme, cam.x, world.time);
+  }
   drawTerrain(ctx, world, ox, oy);
   drawLiquids(ctx, world, ox, oy);
+  if (fancy) drawLifeFront(ctx, theme, world.time, cam.x); // fireflies
   drawProps(ctx, world, ox, oy);
   drawSwings(ctx, world, ox, oy);
   drawVents(ctx, world, ox, oy);
@@ -60,8 +68,10 @@ export function renderWorld(ctx, world) {
   for (const b of world.ebullets) drawEnemyBullet(ctx, b, ox, oy);
   drawFx(ctx, world, ox, oy);
   drawAlarm(ctx, world, ox, oy);
+  if (fancy) drawFront(ctx, theme, cam.x, world.player.y - oy); // the foreground: it thins and goes as the soldier nears the bottom edge
   if (theme.dark) drawDarkness(ctx, world, ox, oy);
   drawAmbient(ctx, theme, cam.x, world.time);
+  if (fancy) drawLightning(ctx, theme, cam.x, world.time);
   if (fancy) drawVignette(ctx);
   if (!world.flashesReduced && !world.player.alive && world.deathT < HURT_TIME) drawHurt(ctx, world.deathT / HURT_TIME);
   if (world.bombFlash > 0) {

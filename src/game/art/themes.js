@@ -39,6 +39,7 @@ export const THEMES = {
     ],
     tiles: { solid: earth('#6b4a2b', '#4a3220', '#4fae3a', { sub: '#5a3c22', deep: '#3e2a1a', fringe: grass('#4fae3a'), under: roots('#3a2412') }), wall: stone('#7a7a6a', '#4a4a3e'), platform: { kind: 'wood', base: '#8a6a3a', dark: '#4a3220' }, spike: '#d8d0b0' },
     decor: [{ k: 'tuft', c: '#3a9a3a', p: 0.22 }, { k: 'fern', c: '#2f8a3a', p: 0.14 }, { k: 'flower', c: '#ffd23a', p: 0.05 }, { k: 'mushroom', c: '#d84a3a', p: 0.04 }, { k: 'reeds', c: '#5a9a3a', p: 0.04 }, { k: 'pebbles', c: '#8a7a6a', p: 0.07 }],
+    life: ['birds', 'pterosaurs'], front: { kind: 'ferns', c: '#14401e' },
     water: WATER, lava: LAVA, fx: 'leaves',
   },
   volcano: {
@@ -54,6 +55,7 @@ export const THEMES = {
     ],
     tiles: { solid: rock('#4a2a2a', '#2a1418', { top: '#7a4034', vein: '#ff6a1a', sub: '#3a2022', deep: '#2a1418', fringe: rubble('#6a3a30') }), wall: rock('#3a2222', '#22100e'), platform: { kind: 'stone', base: '#6a4034', dark: '#2a1418' }, spike: '#d8a070' },
     decor: [{ k: 'pebbles', c: '#6a3a30', p: 0.12 }, { k: 'drygrass', c: '#8a5a30', p: 0.08 }, { k: 'crystal', c: '#ff7a2a', p: 0.05 }],
+    life: ['pterosaurs'], front: { kind: 'rocks', c: '#160a0e' },
     water: WATER, lava: LAVA, fx: 'embers',
   },
   glacier: {
@@ -68,6 +70,7 @@ export const THEMES = {
     ],
     tiles: { solid: earth('#6a9cbc', '#44708c', '#f4fbff', { topDark: '#b4dcf0', sub: '#5a88a8', deep: '#3e6482', fringe: snowcap(), under: icicles() }), wall: stone('#8ab4cc', '#4a7c98'), platform: { kind: 'ice', base: '#a8dcf2', dark: '#6aa8c8' }, spike: '#d8f4ff' },
     decor: [{ k: 'snowpile', c: '#ffffff', p: 0.16 }, { k: 'shard', c: '#9ae0ff', p: 0.06 }, { k: 'crystal', c: '#9ae0ff', p: 0.03 }],
+    weather: { fog: '#e8f6ff', fogY: 180 }, front: { kind: 'drifts', c: '#e8f6ff' },
     water: { base: '#3a7aa8', top: '#a8e0f8', deep: '#2a5a88' }, lava: LAVA, fx: 'snow',
   },
   cave: {
@@ -81,6 +84,7 @@ export const THEMES = {
     ],
     tiles: { solid: rock('#4a4658', '#2a2634', { top: '#625c74', sub: '#3c384a', deep: '#2c283a', fringe: moss('#3a5a4a'), under: stalactites('#625c74') }), wall: rock('#3a3648', '#1e1a28'), platform: { kind: 'stone', base: '#5a566a', dark: '#2a2634' }, spike: '#b8b0c8' },
     decor: [{ k: 'crystal', c: '#6ac8ff', p: 0.06 }, { k: 'bones', c: '#d8d0b8', p: 0.05 }, { k: 'mushroom', c: '#7ab8c8', p: 0.06 }, { k: 'pebbles', c: '#5a566a', p: 0.12 }],
+    life: ['bats'], front: { kind: 'rocks', c: '#08080f' },
     water: { base: '#1f4a78', top: '#4a8ac8', deep: '#10284a' }, lava: LAVA, dark: true, fx: 'dust',
   },
 
@@ -97,6 +101,7 @@ export const THEMES = {
     ],
     tiles: { solid: sand('#d8b668', '#a8844a', { fringe: dunes('#e8cc88'), sub: '#c8a258', deep: '#a8844a' }), wall: stone('#c8a468', '#7a5a30', { top: '#e0c080' }), platform: { kind: 'stone', base: '#c8a468', dark: '#7a5a30' }, spike: '#e8e0c0', quick: '#c8a050' },
     decor: [{ k: 'pebbles', c: '#a8844a', p: 0.1 }, { k: 'cactus', c: '#5a8a4a', p: 0.05 }, { k: 'drygrass', c: '#b89a58', p: 0.1 }, { k: 'bones', c: '#f0e8c8', p: 0.04 }],
+    life: ['birds'], front: { kind: 'grass', c: '#8a6a3a' },
     water: WATER, lava: LAVA, fx: 'dust',
   },
   troy: {
@@ -111,6 +116,7 @@ export const THEMES = {
     ],
     tiles: { solid: stone('#d0c8b8', '#8a8070', { top: '#ece6d8', fringe: grass('#6a9a5a') }), wall: stone('#bdb4a2', '#7a7060'), platform: { kind: 'stone', base: '#e0d8c8', dark: '#8a8070' }, spike: '#c0c0c8' },
     decor: [{ k: 'tuft', c: '#6a9a5a', p: 0.12 }, { k: 'drygrass', c: '#a8a068', p: 0.1 }, { k: 'pebbles', c: '#a89c88', p: 0.1 }],
+    life: ['birds', 'gulls'], front: { kind: 'grass', c: '#3a5a2a' },
     water: WATER, lava: LAVA,
   },
   colosseum: {
@@ -124,6 +130,7 @@ export const THEMES = {
     ],
     tiles: { solid: sand('#dcc488', '#a08850', { fringe: dunes('#ecd49c'), sub: '#ccb078', deep: '#a08850' }), wall: stone('#c0a878', '#7a6038'), platform: { kind: 'stone', base: '#d0b888', dark: '#7a6038' }, spike: '#d8d8e0' },
     decor: [{ k: 'pebbles', c: '#a08850', p: 0.1 }, { k: 'drygrass', c: '#b8a060', p: 0.1 }],
+    life: ['birds'], front: { kind: 'grass', c: '#6a5a30' },
     water: WATER, lava: LAVA, fx: 'dust',
   },
   greatwall: {
@@ -138,6 +145,7 @@ export const THEMES = {
     ],
     tiles: { solid: stone('#8e8678', '#5a5448', { top: '#aaa294', fringe: moss('#6a8a5a') }), wall: stone('#756e62', '#4a443a'), platform: { kind: 'wood', base: '#8a5a38', dark: '#4a2e1a' }, spike: '#b0b0b8' },
     decor: [{ k: 'tuft', c: '#6a8a5a', p: 0.1 }, { k: 'weed', c: '#5a7a4a', p: 0.08 }, { k: 'pebbles', c: '#6a6458', p: 0.1 }],
+    life: ['birds'], weather: { fog: '#ffffff', fogY: 172 }, front: { kind: 'grass', c: '#2a3a2e' },
     water: WATER, lava: LAVA, fx: 'leaves',
   },
 
@@ -154,6 +162,7 @@ export const THEMES = {
     ],
     tiles: { solid: wood('#8a5a30', '#4a2e18', { fringe: moss('#5a7a4a') }), wall: wood('#6a4424', '#3a2210'), platform: { kind: 'wood', base: '#9a6a38', dark: '#4a2e18' }, spike: '#c8c8d0' },
     decor: [{ k: 'pebbles', c: '#6a4424', p: 0.05 }],
+    life: ['gulls', 'fish'], weather: { fog: '#dfe9f0', lightning: true, fogY: 176 }, front: { kind: 'rocks', c: '#14222e' },
     water: { base: '#2a5a88', top: '#6a9cc8', deep: '#1a3a5a' }, lava: LAVA, fx: 'rain',
   },
   castle: {
@@ -167,6 +176,7 @@ export const THEMES = {
     ],
     tiles: { solid: stone('#7c7c8a', '#4a4a58', { top: '#9a9aa8', fringe: grass('#5a7a4a') }), wall: stone('#666674', '#3e3e4c'), platform: { kind: 'wood', base: '#7a5230', dark: '#3a2412' }, spike: '#c8c8d4' },
     decor: [{ k: 'tuft', c: '#5a7a4a', p: 0.1 }, { k: 'weed', c: '#4a6a3a', p: 0.08 }, { k: 'pebbles', c: '#6a6a78', p: 0.1 }],
+    life: ['crows'], weather: { lightning: true }, front: { kind: 'grass', c: '#26361f' },
     water: WATER, lava: LAVA, fx: 'rain',
   },
   shadowcastle: {
@@ -181,6 +191,7 @@ export const THEMES = {
     ],
     tiles: { solid: stone('#3c3650', '#1e1a2c', { top: '#5a5274', fringe: moss('#3a4a4a'), under: drips('#5a5274') }), wall: stone('#2e2a40', '#16121e'), platform: { kind: 'wood', base: '#4a3228', dark: '#22160e' }, spike: '#a8a8c8' },
     decor: [{ k: 'crystal', c: '#c8a0ff', p: 0.04 }, { k: 'pebbles', c: '#4a4460', p: 0.1 }],
+    life: ['bats', 'fireflies'], weather: { fog: '#3a3058', fogY: 180 }, front: { kind: 'grass', c: '#08060f' },
     water: { base: '#1a2a58', top: '#3a5aa0', deep: '#0e1838' }, lava: LAVA, dark: false, fx: 'petals',
   },
   pirate: {
@@ -194,6 +205,7 @@ export const THEMES = {
     ],
     tiles: { solid: wood('#7a4a28', '#3a2010'), wall: wood('#5a3418', '#2a1608'), platform: { kind: 'wood', base: '#8a5a30', dark: '#3a2010' }, spike: '#c8c0b0' },
     decor: [{ k: 'pebbles', c: '#5a3418', p: 0.05 }],
+    life: ['gulls'], front: { kind: 'rocks', c: '#34160f' },
     water: { base: '#2a5a88', top: '#6a9cc8', deep: '#1a3a5a' }, lava: LAVA,
   },
 
@@ -210,6 +222,7 @@ export const THEMES = {
     ],
     tiles: { solid: metal('#6a4a3a', '#3a2418', { stripe: '#a8602a' }), wall: metal('#58402e', '#2e1c10'), platform: { kind: 'metal', base: '#7a5a42', dark: '#3a2418' }, spike: '#c8c0b0' },
     decor: [{ k: 'pebbles', c: '#8a6a50', p: 0.05 }],
+    life: ['birds'], front: { kind: 'grass', c: '#6a4020' },
     water: WATER, lava: LAVA, fx: 'dust',
   },
   factory: {
@@ -225,6 +238,7 @@ export const THEMES = {
     ],
     tiles: { solid: metal('#6a5a4a', '#352c22', { stripe: '#b8862a', fringe: weeds('#4a5a2a') }), wall: metal('#554638', '#2a2018'), platform: { kind: 'metal', base: '#7a6a58', dark: '#352c22' }, spike: '#c8b8a0' },
     decor: [{ k: 'pebbles', c: '#4a4038', p: 0.08 }, { k: 'weed', c: '#4a5a2a', p: 0.1 }],
+    life: ['crows'], weather: { fog: '#5a4a3c', fogY: 186 }, front: { kind: 'rubble', c: '#120e0a' },
     water: { base: '#3a6a58', top: '#7ab4a0', deep: '#1f3a30' }, lava: LAVA, fx: 'embers',
   },
   trench: {
@@ -238,6 +252,7 @@ export const THEMES = {
     ],
     tiles: { solid: earth('#5a4a32', '#352a1c', '#6a5a38', { sub: '#4a3c28', deep: '#30261a', fringe: grass('#6a7a3a'), under: roots('#2e2214') }), wall: wood('#5a4630', '#2e2214'), platform: { kind: 'wood', base: '#6a5232', dark: '#2e2214' }, spike: '#a8a898' },
     decor: [{ k: 'pebbles', c: '#4a3e2a', p: 0.15 }, { k: 'drygrass', c: '#7a7040', p: 0.1 }, { k: 'tuft', c: '#6a7a3a', p: 0.06 }],
+    life: ['crows'], weather: { fog: '#c8c8b8', fogY: 184 }, front: { kind: 'rubble', c: '#181810' },
     water: { base: '#4a5a3a', top: '#7a8a5a', deep: '#2a3420' }, lava: LAVA, fx: 'dust',
   },
   beach: {
@@ -252,6 +267,7 @@ export const THEMES = {
     ],
     tiles: { solid: sand('#dcc690', '#a88c58', { fringe: dunes('#ecd8a8'), sub: '#ccb078', deep: '#a88c58' }), wall: metal('#8a8a7e', '#4a4a42'), platform: { kind: 'wood', base: '#8a6a40', dark: '#3a2a14' }, spike: '#9a9aa4' },
     decor: [{ k: 'shell', c: '#f0d8d0', p: 0.07 }, { k: 'pebbles', c: '#a88c58', p: 0.08 }, { k: 'drygrass', c: '#8aa05a', p: 0.08 }, { k: 'tuft', c: '#8aa05a', p: 0.05 }],
+    life: ['gulls', 'fish'], front: { kind: 'grass', c: '#566e32' },
     water: { base: '#2f78b8', top: '#8ac8f0', deep: '#1f5088' }, lava: LAVA,
   },
 
@@ -267,6 +283,7 @@ export const THEMES = {
     ],
     tiles: { solid: metal('#3a4a5e', '#1c2636', { top: '#e8f4ff', stripe: '#5aa8d8', fringe: snowcap(), under: icicles() }), wall: metal('#2a3646', '#141c28'), platform: { kind: 'metal', base: '#4a5a70', dark: '#1c2636' }, spike: '#d0e8f8' },
     decor: [{ k: 'snowpile', c: '#ffffff', p: 0.15 }, { k: 'shard', c: '#bfe4f8', p: 0.04 }],
+    weather: { fog: '#a8c8e0', fogY: 184 }, front: { kind: 'drifts', c: '#cfe4f4' },
     water: { base: '#1f4a78', top: '#5a9ad0', deep: '#102a48' }, lava: LAVA, fx: 'snow',
   },
   neon: {
@@ -282,6 +299,7 @@ export const THEMES = {
     ],
     tiles: { solid: neon('#241438', '#0e0818', '#ff4aa8'), wall: neon('#1a0e2c', '#0a0612', '#4af0ff'), platform: { kind: 'neon', base: '#34204a', glow: '#4af0ff' }, spike: '#ff7ad0' },
     decor: [{ k: 'crystal', c: '#ff4aa8', p: 0.03 }],
+    front: { kind: 'cables', c: '#0c041a' },
     water: { base: '#2a1a5a', top: '#ff4aa8', deep: '#120a30' }, lava: LAVA, fx: 'rain',
   },
   megacity: {
@@ -297,6 +315,7 @@ export const THEMES = {
     ],
     tiles: { solid: neon('#0e2038', '#050c18', '#4af0ff'), wall: neon('#0a1828', '#040810', '#2a8aff'), platform: { kind: 'neon', base: '#16304c', glow: '#a8ffea' }, spike: '#ff5a7a' },
     decor: [{ k: 'crystal', c: '#4af0ff', p: 0.03 }],
+    front: { kind: 'cables', c: '#030c1a' },
     water: { base: '#0a3a6a', top: '#4af0ff', deep: '#04182e' }, lava: LAVA, fx: 'dust',
   },
   citadel: {
@@ -312,6 +331,7 @@ export const THEMES = {
     ],
     tiles: { solid: stone('#4a2a68', '#1e0e30', { top: '#a060e0', fringe: moss('#6a3a9a'), under: vines('#6a3a9a') }), wall: stone('#341a4c', '#160a22'), platform: { kind: 'stone', base: '#5a3a7a', dark: '#1e0e30' }, spike: '#ff4aa8' },
     decor: [{ k: 'crystal', c: '#ff4aa8', p: 0.06 }, { k: 'pebbles', c: '#3a2250', p: 0.1 }],
+    life: ['bats'], weather: { fog: '#4a1a68', fogY: 186 }, front: { kind: 'rubble', c: '#0c0516' },
     water: { base: '#3a1a6a', top: '#ff4aa8', deep: '#1a0a38' }, lava: LAVA, fx: 'embers',
   },
 };
