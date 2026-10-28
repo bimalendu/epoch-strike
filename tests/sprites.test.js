@@ -115,3 +115,39 @@ test('drawPlayer draws every weapon at the eight aims, upright and on the ceilin
     }
   }
 });
+
+// ---- pickups ----
+import { PICKUPS, pickupInfo } from '../src/game/pickups.js';
+import { pickupIcon, drawPickup, warmPickups } from '../src/game/art/pickups.js';
+
+test('every weapon and power-up badge is a 15x15 tile, and the five era badges all differ', () => {
+  warmPickups();
+  const era = ['spear', 'ballista', 'crossbow', 'tesla', 'plasma'];
+  for (const [item, d] of Object.entries(PICKUPS)) {
+    if (d.kind !== 'weapon' && d.kind !== 'rapid' && d.kind !== 'barrier') continue;
+    const img = pickupIcon(item);
+    assert.equal(img.width, 15, item);
+    assert.equal(img.height, 15, item);
+  }
+  const sigs = era.map((id) => Array.from(readPixels(pickupIcon(id))).join(','));
+  assert.equal(new Set(sigs).size, era.length);
+  // the five icons also differ from each other once the colour is taken out: compare the lit icon pixels
+  const lit = era.map((id) => {
+    const d = readPixels(pickupIcon(id));
+    let s = '';
+    for (let y = 10; y < 13; y++) for (let x = 2; x < 13; x++) s += d[(y * 15 + x) * 4] > 200 || d[(y * 15 + x) * 4 + 1] > 200 ? 1 : 0;
+    return s;
+  });
+  assert.equal(new Set(lit).size, era.length);
+});
+
+test('drawPickup draws every pickup at every moment of its animation', () => {
+  const c = new SoftCanvas(60, 40);
+  const ctx = c.getContext('2d');
+  for (const item of Object.keys(PICKUPS)) {
+    for (let t = 0; t < 3.5; t += 0.037) {
+      const pk = { item, def: pickupInfo(item), x: 30, y: 30, t, float: true };
+      assert.doesNotThrow(() => drawPickup(ctx, pk, 0, 0));
+    }
+  }
+});
