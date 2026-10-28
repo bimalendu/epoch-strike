@@ -3,13 +3,24 @@
 //   origin = centre of the feet, +x = the way the boss faces, -y = up. Mirroring for face < 0 is automatic.
 
 import { Painter, lineTo } from '../../engine/gfx.js';
-import { shade } from './common.js';
+import { shade, mix } from './common.js';
 import { flashCtx } from './hit.js';
 import { flick } from './flash.js';
 
+const inks = new Map();
+/** The outline colour for a fill: the fill darkened hard. Cached, because a boss asks for the same few colours every frame. */
+function ink(col) {
+  let c = inks.get(col);
+  if (!c) {
+    c = mix(shade(col, -0.7), '#120e18', 0.5);
+    inks.set(col, c);
+  }
+  return c;
+}
+
 export function brush(ctx, cx, cy, face) {
   const mx = (lx, w = 0) => Math.round(face > 0 ? cx + lx : cx - lx - w);
-  return {
+  const B = {
     r(lx, ly, w, h, col) {
       ctx.fillStyle = col;
       ctx.fillRect(mx(lx, w), Math.round(cy + ly), w, h);
@@ -26,7 +37,32 @@ export function brush(ctx, cx, cy, face) {
       const bx = face > 0 ? cx + x1 : cx - x1;
       lineTo(ctx, ax, cy + y0, bx, cy + y1, col, t);
     },
+    /** A silhouette mass: 1 px dark outline, the fill, a lit top edge and a shaded bottom edge (4 calls). */
+    part(lx, ly, w, h, col) {
+      B.r(lx - 1, ly - 1, w + 2, h + 2, ink(col));
+      B.r(lx, ly, w, h, col);
+      if (h > 3) {
+        B.r(lx, ly, w, 1, shade(col, 0.22));
+        B.r(lx, ly + h - 1, w, 1, shade(col, -0.25));
+      }
+    },
+    /** An inner panel: the fill with a lit top and a shaded bottom, no outline (3 calls). */
+    slab(lx, ly, w, h, col) {
+      B.r(lx, ly, w, h, col);
+      if (h > 3) {
+        B.r(lx, ly, w, 1, shade(col, 0.22));
+        B.r(lx, ly + h - 1, w, 1, shade(col, -0.25));
+      }
+    },
+    /** A line with a dark under-stroke one pixel out on every side. */
+    stroke(x0, y0, x1, y1, col, t = 1) {
+      const ax = face > 0 ? cx + x0 : cx - x0;
+      const bx = face > 0 ? cx + x1 : cx - x1;
+      lineTo(ctx, ax - 1, cy + y0 - 1, bx - 1, cy + y1 - 1, ink(col), t + 2);
+      lineTo(ctx, ax, cy + y0, bx, cy + y1, col, t);
+    },
   };
+  return B;
 }
 
 /** Shared per-frame state for drawing: pose timers, flash, jitter while dying. */

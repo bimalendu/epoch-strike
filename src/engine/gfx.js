@@ -120,16 +120,31 @@ export function lineTo(ctx, x0, y0, x1, y1, color, t = 1) {
   }
 }
 
+/** The RGBA bytes of `img`: straight from the software canvas in Node, through getImageData in a browser. Read only. */
+export function readPixels(img) {
+  return img.data || img.getContext('2d').getImageData(0, 0, img.width, img.height).data;
+}
+
+/** A new w x h canvas holding the RGBA bytes `px` (length w * h * 4). */
+export function canvasFromPixels(px, w, h) {
+  const out = createCanvas(w, h);
+  if (out.data) {
+    out.data.set(px);
+  } else {
+    const c = ctx2d(out);
+    const id = c.createImageData(w, h);
+    id.data.set(px);
+    c.putImageData(id, 0, 0);
+  }
+  return out;
+}
+
 /**
  * A copy of `img` with every visible pixel mixed toward white by `amount` (0..1); alpha is kept. Used for hit flashes.
- * Reads pixels straight from the software canvas in Node, and through getImageData in a browser.
  */
 export function lightenedCopy(img, amount) {
-  const w = img.width;
-  const h = img.height;
-  const out = createCanvas(w, h);
-  const src = img.data || img.getContext('2d').getImageData(0, 0, w, h).data;
-  const px = out.data || new Uint8ClampedArray(w * h * 4);
+  const src = readPixels(img);
+  const px = new Uint8ClampedArray(src.length);
   for (let i = 0; i < px.length; i += 4) {
     const a = src[i + 3];
     if (a === 0) continue;
@@ -138,11 +153,5 @@ export function lightenedCopy(img, amount) {
     px[i + 2] = src[i + 2] + (255 - src[i + 2]) * amount;
     px[i + 3] = a;
   }
-  if (!out.data) {
-    const c = ctx2d(out);
-    const id = c.createImageData(w, h);
-    id.data.set(px);
-    c.putImageData(id, 0, 0);
-  }
-  return out;
+  return canvasFromPixels(px, img.width, img.height);
 }

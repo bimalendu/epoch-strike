@@ -23,7 +23,7 @@ import { killEnemy } from './enemies.js';
 export const MIN_BOSS_TELE = 0.6; // every attack announces itself at least this long
 const ENTER_MIN = 1.8;
 const PHASE_TIME = 1.5;
-const DEATH_TIME = 3.0;
+export const DEATH_TIME = 3.0;
 
 // ---- helpers for attack scripts ----
 
