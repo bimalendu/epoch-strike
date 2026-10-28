@@ -5,6 +5,8 @@
 import { Painter } from '../../engine/gfx.js';
 import { hash2 } from '../../engine/rng.js';
 import { shade } from './common.js';
+import { SLOPE, floorHeight, slopeSpan } from '../tiles.js';
+import { strataStyle, paintStrata, FRINGES } from './relief.js';
 
 export const TOP = 1;
 export const LEFT = 2;
@@ -12,6 +14,9 @@ export const RIGHT = 4;
 export const BOTTOM = 8;
 
 const cache = new Map();
+
+/** The ground kinds that read as earth rather than masonry: they get rounded corners and strata. */
+const ORGANIC = { earth: 1, rock: 1, sand: 1 };
 
 function h(v, i) {
   return hash2(v, i, 77);
@@ -230,20 +235,81 @@ function paintQuick(p, s, v) {
   p.rect(0, 0, 16, 2, '#d8bc7c');
 }
 
+/** Thickness (px) of the cap along the surface of a slope, by ground kind. */
+const CAP_DEPTH = { earth: 4, stone: 2, rock: 3, sand: 3, metal: 2, wood: 2, neon: 2 };
+
+/** The colour of the lit cap of a ground style. */
+function capColor(s) {
+  return s.kind === 'neon' ? s.glow : s.top || shade(s.base, s.kind === 'stone' ? 0.3 : 0.22);
+}
+
+/**
+ * A slope cell: the ground's own texture, cut off along the slope's line (cleared above it, one pixel column at a time) with
+ * the kind's cap running down the diagonal and, for earth, a fringe of blades on top of it.
+ */
+function paintSlope(p, s, id, v, fringe) {
+  KINDS[s.kind](p, s, 0, v);
+  const cap = capColor(s);
+  const depth = CAP_DEPTH[s.kind];
+  const lowCap = s.topDark || shade(cap, -0.3);
+  const tops = []; // where each column's growth starts: 0 (nowhere to grow) where the surface is not in this cell
+  const [from, to] = slopeSpan(id);
+  for (let x = 0; x < 16; x++) {
+    const top = 16 - Math.round(floorHeight(id, x + 0.5));
+    // no cap where the surface is not in this cell (the lower half of a steep slope is buried by the cell above it)
+    const buried = top >= 16 || x + 0.5 < from || x + 0.5 > to;
+    tops.push(buried ? 0 : top);
+    if (top > 0) p.ctx.clearRect(x, 0, 1, top);
+    if (buried) continue;
+    p.rect(x, top, 1, depth, cap);
+    p.px(x, top + depth, lowCap);
+    p.px(x, top, shade(cap, 0.2));
+  }
+  if (fringe) fringe.paint(p, fringe.c, v, tops);
+}
+
+/** Nibble the exposed top corners of organic ground: a two pixel chamfer, so earth does not end in square blocks. */
+function chamfer(p, mask) {
+  if (!(mask & TOP)) return;
+  if (mask & LEFT) {
+    p.ctx.clearRect(0, 0, 2, 1);
+    p.ctx.clearRect(0, 1, 1, 1);
+  }
+  if (mask & RIGHT) {
+    p.ctx.clearRect(14, 0, 2, 1);
+    p.ctx.clearRect(15, 1, 1, 1);
+  }
+}
+
 /**
  * Get the sprite for a tile in a theme.
+ * `band` is the strata band of ground tiles (0 topsoil, 1 subsoil, 2 bedrock; see relief.js).
  * @param theme  theme object (see themes.js) with theme.tiles = { solid, wall, platform, spike... }
  */
-export function tileSprite(theme, id, mask, v, T) {
-  const key = `${theme.id}|${id}|${mask}|${v & 3}`;
+export function tileSprite(theme, id, mask, variant, T, band = 0) {
+  const v = variant & 3; // the cache is keyed by this, so the painters must only ever see this
+  const key = `${theme.id}|${id}|${mask}|${v}|${band}`;
   let c = cache.get(key);
   if (c) return c;
   const p = new Painter(16, 16);
   const ts = theme.tiles;
+  if (SLOPE[id]) {
+    const s = ts.solid;
+    paintSlope(p, s, id, v, s.fringe && { paint: FRINGES[s.fringe.shape], c: s.fringe.c });
+    c = p.canvas;
+    cache.set(key, c);
+    return c;
+  }
   switch (id) {
-    case T.SOLID:
-      KINDS[ts.solid.kind](p, ts.solid, mask, v);
+    case T.SOLID: {
+      const s = ORGANIC[ts.solid.kind] ? strataStyle(ts.solid, band) : ts.solid;
+      KINDS[s.kind](p, s, mask, v);
+      if (ORGANIC[s.kind]) {
+        paintStrata(p, s, band, v);
+        chamfer(p, mask);
+      }
       break;
+    }
     case T.WALL:
       KINDS[(ts.wall || ts.solid).kind](p, ts.wall || ts.solid, mask, v);
       break;

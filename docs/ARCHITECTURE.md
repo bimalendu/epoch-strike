@@ -335,6 +335,29 @@ walk / jump / fall / drop between them, then searches from the spawn to the exit
 solvable, every checkpoint and pickup to be reachable, and `tools/bot.js` to cross the level in god mode with zero
 falls and zero hazard touches.
 
+## Nature art
+
+The terrain and backdrop try to look like land, not a tile map. Phase by phase:
+
+**Terrain** (`art/tilepaint.js`, `art/tilelayer.js`, `art/relief.js`)
+- Every slope id has a sprite in every theme: the ground's own texture cut along the slope's line one pixel column at a time, a cap
+  (grass, snow, a lit edge) following the diagonal, and growth on top. The steep slope's low cell caps only the half where the
+  surface is (the other half is buried by the cell above it). Slope ids count as filled for the neighbour masks, so there are no
+  edges or caps between a ramp and the ground beside and under it.
+- `theme.tiles.solid` may carry `fringe` and `under` (`{ shape, c }`; shapes in `relief.js`: `FRINGES` grass, snow, sand, moss,
+  rubble, weed and `UNDERSIDES` roots, icicle, stalactite, drip, vine), and `sub` / `deep` strata colours. A fringe is a 16x8 strip
+  drawn into the cell above an exposed top; an underside is a 16x8 strip hung below an open bottom. Only open air (or a liquid,
+  which is drawn over live) takes growth, so spikes and platforms are never painted over.
+- Strata: a ground tile's sprite depends on how many ground tiles lie above it (`strataBand`: topsoil 0-1, subsoil 2-5, bedrock 6+),
+  with stones, roots and the odd fossil embedded. Earth, rock and sand also lose their exposed top corners (a 2 px chamfer).
+- The sprite cache key is `theme|id|mask|variant&3|band`, and painters receive the masked variant, so the picture never depends
+  on which cell happened to ask first.
+- `patchTileLayer` wipes and repaints the 3x3 block around a changed cell plus the column of ground under it (its band changes),
+  then repaints the cells just above and below (their strips reach into the wiped cells). Sprites have transparent corners now,
+  so a repainted cell must be wiped. A test compares every patch with a full rebuild byte for byte.
+- `art/warm.js` warms the fringe and underside strips and decor sprites of every theme (`relief <theme>` tasks); the tile
+  sprites themselves are painted when the level's terrain is baked, as before.
+
 ## Art
 
 All art is drawn with rectangles by `Painter`, so it renders identically in a browser and in the software canvas used
