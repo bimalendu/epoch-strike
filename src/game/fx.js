@@ -109,6 +109,20 @@ export function corpse(world, p) {
   world.fx.push({ k: 'corpse', x: p.x, y: p.y - 14, vx: -p.face * 60, vy: -240, g: 700, t: 0, life: 2.5, face: p.face });
 }
 
+// the archetypes whose body tips over when it dies: they have a body, unlike turrets, mines, spawners and the like
+const FALLS = new Set(['runner', 'shooter', 'heavy', 'duelist', 'breacher', 'charger', 'flyer', 'faller']);
+
+/** A killed enemy knocked back and tipping over: art only (art/fx.js draws it from the enemy's own sprite). */
+export function fall(world, e) {
+  if (!FALLS.has(e.def.arch) || e.gdir < 0) return;
+  const air = !e.grounded;
+  world.fx.push({
+    k: 'fall', def: e.def, x: e.x, y: e.y, y0: air ? Infinity : e.y, face: e.face,
+    vx: -e.face * 55, vy: air ? 0 : -120, g: 640, t: 0, life: FALL_TIME,
+  });
+}
+export const FALL_TIME = 0.45;
+
 export function updateFx(world, dt) {
   const list = world.fx;
   for (let i = 0; i < list.length; i++) {
@@ -137,6 +151,18 @@ export function updateFx(world, dt) {
       case 'flash':
       case 'muzzle':
       case 'zap':
+        f.life -= dt;
+        break;
+      case 'fall':
+        f.vy += f.g * dt;
+        f.x += f.vx * dt;
+        f.y += f.vy * dt;
+        if (f.y > f.y0) {
+          f.y = f.y0;
+          f.vx = 0;
+          f.vy = 0;
+        }
+        f.t += dt;
         f.life -= dt;
         break;
       case 'corpse':

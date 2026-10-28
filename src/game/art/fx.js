@@ -3,7 +3,10 @@
 import { Painter, blit, lineTo } from '../../engine/gfx.js';
 import { drawText } from '../../engine/font.js';
 import { playerSprites } from './player.js';
-import { PAD } from './bake.js';
+import { PAD, turned } from './bake.js';
+import { enemyFrames } from './enemies.js';
+import { hitImage } from './hit.js';
+import { flick } from './flash.js';
 
 const SIZES = [18, 32, 56];
 const FRAMES = 6;
@@ -35,6 +38,25 @@ function buildBooms() {
 }
 
 /** Paint the explosion frame sets now instead of at the first explosion. */
+const lying = new WeakMap();
+
+/** The enemy's idle frame tipped onto its back (head to the left), cropped tight. Built at warm-up. */
+function lyingFrame(fr) {
+  let img = lying.get(fr);
+  if (!img) {
+    img = turned(fr.idle, true);
+    lying.set(fr, img);
+  }
+  return img;
+}
+
+/** Build the tipped-over frame of an enemy's frame set now (and its white copy), so a kill never paints during play. */
+export function warmFall(fr) {
+  if (fr.idle && fr.idle.width > 2 && !fr.draw) hitImage(lyingFrame(fr));
+}
+
+const FALL_FLASH = 0.1; // seconds the falling body stays white
+
 export function warmFx() {
   if (!booms) buildBooms();
 }
@@ -142,6 +164,19 @@ export function drawFx(ctx, world, ox, oy) {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(x - 1, y - 48, 2, 48);
         ctx.globalAlpha = 1;
+        break;
+      }
+      case 'fall': {
+        const fr = enemyFrames(f.def);
+        if (!fr.idle || fr.idle.width <= 2 || f.def.draw || fr.draw) break; // drawn live: no sprite to tip over
+        if (f.life < 0.15 && flick(f.t, 20) % 2 === 1) break; // blinks out
+        if (f.t < FALL_FLASH) {
+          blit(ctx, hitImage(fr.idle), x - fr.ox, y - fr.h, f.face < 0, false);
+        } else {
+          const img = lyingFrame(fr);
+          const down = f.y >= f.y0; // on the ground: lie flat; still in the air: keep tipping
+          blit(ctx, f.t < 0.2 && !down ? hitImage(img) : img, x - (img.width >> 1), y - img.height, f.face < 0, false);
+        }
         break;
       }
       case 'corpse': {

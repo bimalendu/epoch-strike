@@ -1,4 +1,4 @@
-import './helpers.js';
+import { makeInput, run } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Painter, lightenedCopy, readPixels } from '../src/engine/gfx.js';
@@ -150,4 +150,68 @@ test('drawPickup draws every pickup at every moment of its animation', () => {
       assert.doesNotThrow(() => drawPickup(ctx, pk, 0, 0));
     }
   }
+});
+
+// ---- enemies ----
+import { ENEMY_DEFS } from '../src/game/enemy_defs.js';
+import { enemyFrames } from '../src/game/art/enemies.js';
+import { World } from '../src/game/world.js';
+import { flatLevel } from '../src/game/ascii.js';
+import { spawnEnemy, killEnemy } from '../src/game/enemies.js';
+
+test('every enemy frame set is padded and outlined: the border pixels are all dark ink', () => {
+  for (const [id, d] of Object.entries(ENEMY_DEFS)) {
+    if (d.boss) continue;
+    const f = enemyFrames({ id, ...d });
+    const imgs = [f.idle, ...f.run, f.hot].filter(Boolean);
+    for (const img of imgs) {
+      if (img.width <= 2) continue;
+      const data = readPixels(img);
+      const w = img.width;
+      const h = img.height;
+      const dark = (x, y) => {
+        const i = (y * w + x) * 4;
+        return data[i + 3] === 0 || data[i] + data[i + 1] + data[i + 2] < 150;
+      };
+      for (let x = 0; x < w; x++) assert.ok(dark(x, 0), `${id}: top row`);
+      for (let y = 0; y < h; y++) assert.ok(dark(0, y) && dark(w - 1, y), `${id}: side columns`);
+    }
+  }
+});
+
+function arena() {
+  return new World(flatLevel(60, 14), { god: true });
+}
+
+test('killing a humanoid pushes exactly one fall fx; a silent kill, a turret and a boss push none', () => {
+  const world = arena();
+  const p = world.player;
+  const e = spawnEnemy(world, { type: 'grunt', x: p.x + 60, y: p.y });
+  const before = world.fx.filter((f) => f.k === 'fall').length;
+  killEnemy(world, e);
+  assert.equal(world.fx.filter((f) => f.k === 'fall').length, before + 1);
+
+  const quiet = spawnEnemy(world, { type: 'grunt', x: p.x + 70, y: p.y });
+  killEnemy(world, quiet, true);
+  assert.equal(world.fx.filter((f) => f.k === 'fall').length, before + 1, 'silent kills do not fall');
+
+  const turret = spawnEnemy(world, { type: 'spitter', x: p.x + 90, y: p.y });
+  killEnemy(world, turret);
+  assert.equal(world.fx.filter((f) => f.k === 'fall').length, before + 1, 'turrets do not fall');
+});
+
+test('a fall fx tips over, lands, and is gone after its life', () => {
+  const world = arena();
+  const p = world.player;
+  const e = spawnEnemy(world, { type: 'grunt', x: p.x + 60, y: p.y });
+  e.grounded = true;
+  killEnemy(world, e);
+  const f = world.fx.find((x) => x.k === 'fall');
+  assert.ok(f);
+  const y0 = f.y0;
+  const input = makeInput();
+  run(world, input, 12);
+  assert.ok(f.y <= y0, 'hops up, never below the floor');
+  run(world, input, 60);
+  assert.ok(!world.fx.includes(f), 'removed when its life ends');
 });

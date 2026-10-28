@@ -68,15 +68,17 @@ export function bake(img, { outline = true, light = true } = {}) {
   return canvasFromPixels(out, w, h);
 }
 
+const isImage = (v) => v && typeof v === 'object' && typeof v.width === 'number' && typeof v.height === 'number' && !Array.isArray(v);
+
 /**
- * A baked copy of an enemy frame set `{idle, run[], hot?, w, h, ox, ...}`: every frame is baked once (frames shared between
- * fields stay shared) and the anchors move by the pad. Boss sets (2x2 placeholders drawn per frame) are returned as they are.
+ * A baked copy of an enemy frame set `{idle, run[], hot?, w, h, ox, ...}`: every image in it (`idle`, `run`, `hot` and any
+ * other canvas field, such as the elephant's `rear`) is baked once, frames shared between fields stay shared, and the
+ * anchors move by the pad. Boss sets (2x2 placeholders drawn per frame) are returned as they are.
  */
 export function bakeFrames(f) {
   if (!f.idle || f.idle.width <= 2) return f;
   const seen = new Map();
   const one = (img) => {
-    if (!img) return img;
     let b = seen.get(img);
     if (!b) {
       b = bake(img);
@@ -84,10 +86,48 @@ export function bakeFrames(f) {
     }
     return b;
   };
-  const out = { ...f, idle: one(f.idle), run: (f.run || []).map(one) };
-  if (f.hot) out.hot = one(f.hot);
-  out.ox = f.ox + PAD;
-  out.h = f.h + PAD;
-  out.w = f.w + PAD * 2;
+  const out = { ...f };
+  for (const [k, v] of Object.entries(f)) {
+    if (isImage(v)) out[k] = one(v);
+    else if (Array.isArray(v) && v.length && v.every(isImage)) out[k] = v.map(one);
+  }
+  if (f.ox !== undefined) out.ox = f.ox + PAD;
+  if (f.h !== undefined) out.h = f.h + PAD;
+  if (f.w !== undefined) out.w = f.w + PAD * 2;
   return out;
+}
+
+/**
+ * A copy of `img` turned a quarter turn (clockwise, or counter-clockwise when `ccw`) and cropped to what is visible, so a
+ * body that has fallen over lies on the ground instead of floating above it. For death animations.
+ */
+export function turned(img, ccw = false) {
+  const w = img.width;
+  const h = img.height;
+  const src = readPixels(img);
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (src[(y * w + x) * 4 + 3] === 0) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  }
+  if (x1 < 0) return canvasFromPixels(new Uint8ClampedArray(4), 1, 1);
+  const cw = x1 - x0 + 1;
+  const ch = y1 - y0 + 1;
+  const out = new Uint8ClampedArray(cw * ch * 4);
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      // clockwise: (x, y) -> (ch - 1 - y, x); counter-clockwise: (x, y) -> (y, cw - 1 - x); the result is ch wide, cw tall
+      const nx = ccw ? y : ch - 1 - y;
+      const ny = ccw ? cw - 1 - x : x;
+      const o = (ny * ch + nx) * 4;
+      const i = ((y + y0) * w + x + x0) * 4;
+      out[o] = src[i]; out[o + 1] = src[i + 1]; out[o + 2] = src[i + 2]; out[o + 3] = src[i + 3];
+    }
+  }
+  return canvasFromPixels(out, ch, cw);
 }

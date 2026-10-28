@@ -1,7 +1,8 @@
 // Procedural enemy sprites. Painters are keyed by def.tpl; each returns frames for a def.
 // Add a new template here and reference it from enemy_defs.js.
 
-import { Painter, blit, lineTo } from '../../engine/gfx.js';
+import { Painter, blit, lineTo, lightenedCopy } from '../../engine/gfx.js';
+import { bakeFrames } from './bake.js';
 import { shade, drawLegs } from './common.js';
 import { capsulePainter } from './pickups.js';
 import { registerCreatures } from './creatures.js';
@@ -24,6 +25,11 @@ import { flick } from './flash.js';
 
 const cache = new Map();
 
+/** Humanoids that hold something out: the arm is drawn live along the aim by drawEnemy instead of hanging in the sprite. */
+function armed(def) {
+  return !!(def.gun || def.sword || def.axe || def.bow || def.crossbow || def.thrower);
+}
+
 function humanoidFrame(def, frame) {
   const pal = def.pal;
   const p = new Painter(24, 32);
@@ -31,6 +37,9 @@ function humanoidFrame(def, frame) {
   const skin = pal.skin, skinD = shade(skin, -0.3);
   // head
   p.ellipse(13, 6 + bob, 4, 4, skin);
+  p.rect(9, 5 + bob, 1, 3, skinD); // shaded back of the head
+  p.px(15, 8 + bob, shade(skin, 0.25));
+  p.px(14, 6 + bob, '#f4f0f0');
   p.px(15, 6 + bob, pal.eye || '#111111');
   const hat = pal.hat;
   switch (def.hatStyle) {
@@ -192,11 +201,22 @@ function humanoidFrame(def, frame) {
       p.ellipse(13, 4 + bob, 5, 3, hat);
       p.rect(8, 5 + bob, 11, 2, hat);
   }
-  // torso
+  // torso, with the arm that is behind it
   p.rect(12, 10 + bob, 3, 1, skinD);
+  p.rect(8, 12 + bob, 2, 6, shade(pal.body, -0.4));
+  p.px(8, 18 + bob, skinD);
   p.rect(10, 11 + bob, 7, 9, pal.body);
   p.rect(10, 11 + bob, 1, 9, shade(pal.body, -0.3));
+  p.rect(15, 12 + bob, 1, 7, shade(pal.body, 0.18));
+  p.rect(11, 11 + bob, 5, 1, shade(pal.body, 0.18));
   p.rect(10, 19 + bob, 7, 2, pal.belt || '#33261a');
+  p.rect(10, 19 + bob, 7, 1, shade(pal.belt || '#33261a', 0.3));
+  if (!armed(def) && !def.club) {
+    // nothing in its hands: the front arm hangs at its side
+    p.rect(16, 12 + bob, 2, 6, shade(pal.body, -0.1));
+    p.rect(16, 12 + bob, 2, 1, shade(pal.body, 0.2));
+    p.rect(16, 18 + bob, 2, 2, skin);
+  }
   if (def.armor) {
     p.rect(9, 11 + bob, 9, 3, def.armor);
     p.rect(9, 11 + bob, 9, 1, shade(def.armor, 0.4));
@@ -234,6 +254,7 @@ function build(def) {
   if (def.tpl === 'humanoid') {
     frames.idle = humanoidFrame(def, -1);
     for (let i = 0; i < 4; i++) frames.run.push(humanoidFrame(def, i));
+    frames.hot = lightenedCopy(frames.idle, 0.4); // the bright frame it flickers to while it telegraphs
     frames.w = 24;
     frames.h = 32;
     frames.ox = 12; // anchor x inside the sprite
@@ -273,10 +294,49 @@ registerMedieval(painters);
 export function enemyFrames(def) {
   let f = cache.get(def.id);
   if (!f) {
-    f = build(def);
+    f = bakeFrames(build(def));
     cache.set(def.id, f);
   }
   return f;
+}
+
+const INK = '#17121c';
+
+/** A thick line with a dark under-stroke one pixel out on every side: how weapons are outlined. */
+function olLine(ctx, x0, y0, x1, y1, col, t) {
+  lineTo(ctx, x0 - 1, y0 - 1, x1 - 1, y1 - 1, INK, t + 2);
+  lineTo(ctx, x0, y0, x1, y1, col, t);
+}
+
+const sleeves = new Map();
+
+/** The arm that holds a weapon: a sleeve in the enemy's body colour from the shoulder to the grip, and a hand. */
+function holdArm(ctx, def, sx, sy, tx, ty) {
+  let c = sleeves.get(def.id);
+  if (!c) {
+    c = shade(def.pal.body, -0.15);
+    sleeves.set(def.id, c);
+  }
+  lineTo(ctx, sx, sy, tx, ty, c, 3);
+  ctx.fillStyle = def.pal.skin;
+  ctx.fillRect(Math.round(tx) - 1, Math.round(ty) - 1, 2, 2);
+}
+
+// A shot is a recoil for a few frames after the telegraph ends. The enemy's own state goes straight back to idle, so the art
+// notes the frame it left 'tele'; this memory is art only and the world never reads it.
+const recoils = new WeakMap();
+const RECOIL_FRAMES = 4;
+
+function recoilOf(e) {
+  let r = recoils.get(e);
+  if (!r) {
+    r = { tele: false, k: 0 };
+    recoils.set(e, r);
+  }
+  if (r.tele && e.state !== 'tele') r.k = RECOIL_FRAMES;
+  else if (r.k > 0) r.k--;
+  r.tele = e.state === 'tele';
+  return r.k > 0 ? 1 : 0;
 }
 
 /** Draw one enemy. */
@@ -296,12 +356,14 @@ export function drawEnemy(ctx, e, ox, oy) {
   const flipX = e.face < 0;
   const flipY = e.gdir < 0;
   blit(ctx, img, e.x - ox - f.ox, e.y - oy - f.h, flipX, flipY);
+  const kick = def.gun ? recoilOf(e) : 0;
   if (def.tpl === 'humanoid' && def.thrower) {
     // a bone-tipped spear raised to throw, following the aim
     const ax = e.aimX === undefined ? e.face : e.aimX;
     const ay = e.aimY === undefined ? 0 : e.aimY;
     const sx = e.x - ox + e.face * 2, sy = e.y - oy - 22;
     const raise = e.state === 'tele' ? -3 : 0;
+    holdArm(ctx, def, sx - e.face, sy + 3, sx + ax * 3, sy + ay * 3 + raise);
     if (def.thrower === 'dynamite') {
       // a red stick with a fizzing fuse, raised overhead while it winds up
       const bx = sx + ax * 7, by = sy + ay * 7 + raise - 3;
@@ -322,7 +384,7 @@ export function drawEnemy(ctx, e, ox, oy) {
       ctx.fillRect(Math.round(bx) - 3, Math.round(by) - 4, 6, 1);
     } else if (def.thrower === 'axe') {
       // a bearded axe raised overhead, the blade glinting
-      lineTo(ctx, sx - ax * 3, sy - ay * 3 + raise, sx + ax * 8, sy + ay * 8 + raise, '#8a5a2a', 2);
+      olLine(ctx, sx - ax * 3, sy - ay * 3 + raise, sx + ax * 8, sy + ay * 8 + raise, '#8a5a2a', 2);
       const bx = sx + ax * 8, by = sy + ay * 8 + raise;
       ctx.fillStyle = '#dfe6ee';
       ctx.fillRect(Math.round(bx - ay * 4) - 1, Math.round(by + ax * 4) - 1, 4, 4);
@@ -330,7 +392,7 @@ export function drawEnemy(ctx, e, ox, oy) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(Math.round(bx - ay * 4), Math.round(by + ax * 4), 1, 1);
     } else {
-      lineTo(ctx, sx - ax * 5, sy - ay * 5 + raise, sx + ax * 13, sy + ay * 13 + raise, '#6b4a2b', 2);
+      olLine(ctx, sx - ax * 5, sy - ay * 5 + raise, sx + ax * 13, sy + ay * 13 + raise, '#6b4a2b', 2);
       ctx.fillStyle = '#f4f0dc';
       ctx.fillRect(Math.round(sx + ax * 13) - 1, Math.round(sy + ay * 13 + raise) - 1, 3, 3);
     }
@@ -339,7 +401,8 @@ export function drawEnemy(ctx, e, ox, oy) {
     // a great axe: it swings up during the run and the blade flashes
     const sx = e.x - ox + e.face * 4, sy = e.y - oy - 19;
     const up = e.state === 'tele' ? -7 : moving ? -4 + (Math.floor(e.anim * 2) % 2) * 4 : 0;
-    lineTo(ctx, sx - e.face * 1, sy + 4, sx + e.face * 9, sy + up - 3, '#8a5a2a', 2);
+    holdArm(ctx, def, sx - e.face * 2, sy + 1, sx, sy + 3);
+    olLine(ctx, sx - e.face * 1, sy + 4, sx + e.face * 9, sy + up - 3, '#8a5a2a', 2);
     ctx.fillStyle = '#dfe6ee';
     ctx.fillRect(Math.round(sx + e.face * 9) - 2, Math.round(sy + up - 6), 5, 6);
     ctx.fillStyle = '#ffffff';
@@ -349,7 +412,8 @@ export function drawEnemy(ctx, e, ox, oy) {
     // a short blade held out front; it lifts back during the wind-up
     const sx = e.x - ox + e.face * 4, sy = e.y - oy - 19;
     const up = e.state === 'tele' ? -5 : moving ? -1 : 1;
-    lineTo(ctx, sx, sy, sx + e.face * 12, sy + up, '#dfe6ee', 2);
+    holdArm(ctx, def, sx - e.face * 2, sy - 1, sx, sy);
+    olLine(ctx, sx, sy, sx + e.face * 12, sy + up, '#dfe6ee', 2);
     ctx.fillStyle = '#7a5a2a';
     ctx.fillRect(Math.round(sx) - 1, Math.round(sy) - 1, 3, 3);
   }
@@ -359,8 +423,9 @@ export function drawEnemy(ctx, e, ox, oy) {
     const ay = e.aimY === undefined ? 0 : e.aimY;
     const sx = e.x - ox + e.face * 3, sy = e.y - oy - 20;
     const nx = -ay, ny = ax; // across the bow
-    lineTo(ctx, sx + ax * 7 + nx * 7, sy + ay * 7 + ny * 7, sx + ax * 10, sy + ay * 10, '#8a5a2a', 2);
-    lineTo(ctx, sx + ax * 10, sy + ay * 10, sx + ax * 7 - nx * 7, sy + ay * 7 - ny * 7, '#8a5a2a', 2);
+    holdArm(ctx, def, sx - ax, sy - ay, sx + ax * 8, sy + ay * 8);
+    olLine(ctx, sx + ax * 7 + nx * 7, sy + ay * 7 + ny * 7, sx + ax * 10, sy + ay * 10, '#8a5a2a', 2);
+    olLine(ctx, sx + ax * 10, sy + ay * 10, sx + ax * 7 - nx * 7, sy + ay * 7 - ny * 7, '#8a5a2a', 2);
     const pull = e.state === 'tele' ? 5 : 1;
     lineTo(ctx, sx + ax * 7 + nx * 7, sy + ay * 7 + ny * 7, sx + ax * (7 - pull) , sy + ay * (7 - pull), '#e8e0c8', 1);
     lineTo(ctx, sx + ax * (7 - pull), sy + ay * (7 - pull), sx + ax * 7 - nx * 7, sy + ay * 7 - ny * 7, '#e8e0c8', 1);
@@ -372,9 +437,10 @@ export function drawEnemy(ctx, e, ox, oy) {
     const ay = e.aimY === undefined ? 0 : e.aimY;
     const sx = e.x - ox + e.face * 3, sy = e.y - oy - 20;
     const nx = -ay, ny = ax;
-    lineTo(ctx, sx - ax * 2, sy - ay * 2, sx + ax * 12, sy + ay * 12, '#6b4a2b', 3);
-    lineTo(ctx, sx + ax * 10 + nx * 7, sy + ay * 10 + ny * 7, sx + ax * 12, sy + ay * 12, '#4a4a56', 2);
-    lineTo(ctx, sx + ax * 12, sy + ay * 12, sx + ax * 10 - nx * 7, sy + ay * 10 - ny * 7, '#4a4a56', 2);
+    holdArm(ctx, def, sx - ax, sy - ay, sx + ax * 6, sy + ay * 6);
+    olLine(ctx, sx - ax * 2, sy - ay * 2, sx + ax * 12, sy + ay * 12, '#6b4a2b', 3);
+    olLine(ctx, sx + ax * 10 + nx * 7, sy + ay * 10 + ny * 7, sx + ax * 12, sy + ay * 12, '#4a4a56', 2);
+    olLine(ctx, sx + ax * 12, sy + ay * 12, sx + ax * 10 - nx * 7, sy + ay * 10 - ny * 7, '#4a4a56', 2);
     const draw = e.state === 'tele' ? 4 : 0;
     lineTo(ctx, sx + ax * (10 - draw) + nx * 7, sy + ay * (10 - draw) + ny * 7, sx + ax * (10 - draw) - nx * 7, sy + ay * (10 - draw) - ny * 7, '#e8e0c8', 1);
     if (e.state === 'tele') {
@@ -387,14 +453,14 @@ export function drawEnemy(ctx, e, ox, oy) {
     // aimed gun
     const ax = e.aimX === undefined ? e.face : e.aimX;
     const ay = e.aimY === undefined ? 0 : e.aimY;
-    const sx = e.x - ox + e.face * 2, sy = e.y - oy - 21;
-    lineTo(ctx, sx, sy, sx + ax * 4, sy + ay * 4, shade(def.pal.skin, -0.1), 3);
+    const sx = e.x - ox + e.face * 2 - ax * kick, sy = e.y - oy - 21 - ay * kick;
+    holdArm(ctx, def, sx, sy, sx + ax * 4, sy + ay * 4);
     if (def.bazooka) {
       // a rocket tube held on the shoulder: long, olive, flared at the back
-      lineTo(ctx, sx - ax * 5, sy - ay * 5, sx + ax * 14, sy + ay * 14, '#4a5a3a', 4);
+      olLine(ctx, sx - ax * 5, sy - ay * 5, sx + ax * 14, sy + ay * 14, '#4a5a3a', 4);
       lineTo(ctx, sx - ax * 5, sy - ay * 5, sx + ax * 14, sy + ay * 14, '#6a7a52', 2);
       lineTo(ctx, sx + ax * 12, sy + ay * 12, sx + ax * 15, sy + ay * 15, '#2a2a2e', 4);
-    } else lineTo(ctx, sx + ax * 3, sy + ay * 3, sx + ax * 13, sy + ay * 13, '#2a2a2e', 2);
+    } else olLine(ctx, sx + ax * 3, sy + ay * 3, sx + ax * 13, sy + ay * 13, '#2a2a2e', 2);
     if (e.state === 'tele') {
       const tw = e.tele > 0 ? 1 - e.t / e.tele : 1;
       ctx.fillStyle = tw > 0.5 ? '#ffffff' : '#ffb84a';

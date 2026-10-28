@@ -3,7 +3,7 @@
 
 import { TILE, VIEW_W, VIEW_H } from './constants.js';
 import { enemyDef } from './enemy_defs.js';
-import { explosion, spark, debris, ring } from './fx.js';
+import { explosion, spark, debris, ring, fall } from './fx.js';
 import { spawnPickup, randomWeaponItem } from './pickups.js';
 import { ARCH, mineBlast } from './ai.js';
 import { bossDamage, bossDown } from './boss.js';
@@ -164,6 +164,7 @@ export function killEnemy(world, e, silent = false) {
     ring(world, e.x, e.cy, '#ffffff', size ? 26 : 16, 0.2);
     const own = bodyColors(e.def);
     if (own) debris(world, e.x, e.cy, own, size ? 8 : 5, 100);
+    if (!silent && !e.hidden) fall(world, e);
   }
   if (!silent) world.sfx(size ? 'bigBoom' : 'boom');
   world.events.push({ type: 'kill', id: e.id, arch: e.arch, score: e.def.score ?? 100, x: e.x, y: e.cy, enemy: e });
