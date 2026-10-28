@@ -1,4 +1,4 @@
-// Week 14: Level 20 (the Warlord's Citadel), the boss rush of Echo bosses, the Rift Warlord, and the ending with its credits.
+// Level 20 (the Warlord's Citadel), the boss rush of Echo bosses, the Rift Warlord, and the ending with its credits.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';

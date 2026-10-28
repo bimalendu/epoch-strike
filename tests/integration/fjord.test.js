@@ -1,4 +1,4 @@
-// Week 9 (Vikings): sea serpents, swells, berserkers, axe throwers, the Crossbow Volley and the Kraken.
+// The fjord (Vikings): sea serpents, swells, berserkers, axe throwers, the Crossbow Volley and the Kraken.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';

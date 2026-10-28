@@ -1,4 +1,4 @@
-// Week 9 (China): firework launchers, terracotta guards, kite soldiers and the Dragon Kite Fortress.
+// The Great Wall (China): firework launchers, terracotta guards, kite soldiers and the Dragon Kite Fortress.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';

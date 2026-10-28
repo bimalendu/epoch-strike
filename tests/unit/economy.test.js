@@ -1,4 +1,4 @@
-// Week 16 (balance): the lives economy of the whole game, read from the level data.
+// Balance: the lives economy of the whole game, read from the level data.
 //
 // The design plan fixes the rules (3 lives, cap 6, 10 medals = a life, 20,000 then every 50,000 points, one hidden 1UP per
 // era group, a life for a flawless boss kill) and asks for one outcome: the average player has about 4 lives entering

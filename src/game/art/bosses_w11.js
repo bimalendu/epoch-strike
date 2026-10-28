@@ -1,4 +1,4 @@
-// Boss art for Week 11: the Armored Locomotive (level 13), the Iron Furnace Engine (level 14) and the War Zeppelin (level 15).
+// Boss art for Levels 13-15: the Armored Locomotive (level 13), the Iron Furnace Engine (level 14) and the War Zeppelin (level 15).
 // Same conventions as bosses.js: a Brush in boss-local coordinates (origin = centre of the feet, +x = facing, -y = up).
 
 import { shade, mix } from './common.js';

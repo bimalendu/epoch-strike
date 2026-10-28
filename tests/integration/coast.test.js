@@ -1,4 +1,4 @@
-// Week 12 (the beach and the tank): Level 16, the rideable tank, landmines, bunkers and anti-tank guns, naval gunfire,
+// The beach and the tank: Level 16, the rideable tank, landmines, bunkers and anti-tank guns, naval gunfire,
 // fighters and the Super-Heavy Tank.
 import test from 'node:test';
 import assert from 'node:assert/strict';

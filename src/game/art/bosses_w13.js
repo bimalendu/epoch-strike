@@ -1,4 +1,4 @@
-// Boss art for Week 13: the Missile Silo Mech (level 17), the Gunship Helicopter (18) and the AI Core Hydra (19).
+// Boss art for Levels 17-19: the Missile Silo Mech (level 17), the Gunship Helicopter (18) and the AI Core Hydra (19).
 // Same conventions as bosses.js: a Brush in boss-local coordinates (origin = centre of the feet, +x = facing, -y = up).
 
 import { shade, mix } from './common.js';

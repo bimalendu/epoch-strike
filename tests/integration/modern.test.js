@@ -1,4 +1,4 @@
-// Week 13 (the last era group, part 1): the Plasma Cannon, searchlights and the alarm, sleeping guards, gravity halls, the
+// The modern era (the last era group, part 1): the Plasma Cannon, searchlights and the alarm, sleeping guards, gravity halls, the
 // hoverbike, laser emitters, the new enemies, Levels 17-19 and the Silo Mech, Gunship and Hydra bosses.
 import test from 'node:test';
 import assert from 'node:assert/strict';

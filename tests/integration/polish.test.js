@@ -1,4 +1,4 @@
-// Week 15 (polish): auto-pause in the play scene, hotkeys, the effects budget and cosmetic randomness. The Input-only tests (gamepad, keyboard, touch) live in tests/unit/input.test.js.
+// Polish: auto-pause in the play scene, hotkeys, the effects budget and cosmetic randomness. The Input-only tests (gamepad, keyboard, touch) live in tests/unit/input.test.js.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeGame, stepN } from '../../tools/shots.mjs';
@@ -117,7 +117,7 @@ test('save: the new options survive a reload, and rubbish is replaced by the def
   const junk = withOptions((o) => { o.fx = 'ultra'; o.touch = 7; });
   assert.equal(junk.options.fx, 'high');
   assert.equal(junk.options.touch, 'auto');
-  // a save from before Week 15 has neither option
+  // a save from before these options existed has neither
   const old = withOptions((o) => { delete o.fx; delete o.touch; });
   assert.equal(old.options.fx, 'high');
   assert.equal(old.options.touch, 'auto');

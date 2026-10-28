@@ -1,6 +1,6 @@
 // The soundtrack. Every level names a track in its definition (`music: 'jungle'`); bosses use 'boss' unless the level
 // asks for another. Tracks are data for src/engine/music.js (see the format described there).
-// Week 7: title, jungle, volcano, glacier, cave, boss. Week 8: pyramid, troy, colosseum. Later weeks add one per era.
+// One track per level theme, plus the title screen and the boss fight.
 
 const FOUR = 'x...x...x...x...';
 const BACKBEAT = '....x.......x...';

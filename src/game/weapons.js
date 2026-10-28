@@ -1,6 +1,6 @@
 // Player weapons. Each weapon has a cooldown and a fire() that spawns bullets through the world.
-// Week 2: Rifle. Week 4: Machine Gun, Spread, Laser, Flame, Homing (the pickup letters M S L F H).
-// Weeks 7-13 add the era weapons (E) through the registry below: one per group of four levels, picked up as an
+// The rifle is the default; the pickups are Machine Gun, Spread, Laser, Flame and Homing (the letters M S L F H).
+// The era weapons (E) come through the registry below: one per group of four levels, picked up as an
 // 'E' capsule that resolves to the weapon of the era you are in (see eraWeaponFor).
 
 import { chainZap } from './tesla.js';

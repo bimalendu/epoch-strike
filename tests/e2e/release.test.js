@@ -1,4 +1,4 @@
-// Week 16 (release): the shipped site is complete and self-contained, the browser entry point boots and plays against a fake
+// Release: the shipped site is complete and self-contained, the browser entry point boots and plays against a fake
 // DOM, and the repository carries what a release needs (README, credits, licence, CI and Pages workflows). The Pages artifact
 // is only index.html, style.css and src/; nothing is installed to play or to run `npm test`.
 import test from 'node:test';

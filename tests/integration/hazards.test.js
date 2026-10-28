@@ -1,4 +1,4 @@
-// Week 8 hazards: quicksand and crushers.
+// Hazards: quicksand and crushers.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';

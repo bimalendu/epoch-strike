@@ -60,15 +60,15 @@ A def in `enemy_defs.js` is an archetype name plus numbers:
   jump the slash and shoot it in the back. `runner` gained `ambush` (px) and `stall`: an ambusher hides (`waiting`,
   `hidden`, `noContact`: it is unseen, unhittable and harmless) until the soldier comes within `ambush` px on screen, then
   steps out in a puff of smoke, stands still for `stall` seconds (never under 0.4 s) and rushes in (ninjas).
-* Week 10 enemies: knights (`armorFront` plate and shield), crossbowmen (flat quarrels), catapults (`turret` with a
+* Medieval enemies: knights (`armorFront` plate and shield), crossbowmen (flat quarrels), catapults (`turret` with a
   lobbed `boulder`, `bullet.high`), pirates (cutlass runners), buccaneers (musket `shooter`), deck cannons and gulls.
   The Ghost Galleon's `spectre` crew has one hit point.
-* Week 11 enemies: gunslingers (a pair of shots), bandits (`runner` with `ambush`/`stall`, hiding in roof hatches),
+* Industrial enemies: gunslingers (a pair of shots), bandits (`runner` with `ambush`/`stall`, hiding in roof hatches),
   dynamiters (lobbed sticks, `bullet.kind: 'dynamite'`), sharpshooters (a full second of aim), a gatling (`turret` burst),
   vultures; factory workers, riveters, foremen (`armorFront` apron), iron presses (`crusher` with its own `pal`) and slag
   cannons; infantry, bayonets, flamers (short-lived `fire`), mortars (lobbed `shell`) and biplanes (`flyer` that
   `swoop`s and drops a `bomb` every `dropEvery` seconds while it passes the soldier).
-* Week 12 enemies (the coastal assault): garrison troops, grenadiers (lobbed `grenade`), bazooka troops (a slow `rocket`)
+* Coastal-assault enemies: garrison troops, grenadiers (lobbed `grenade`), bazooka troops (a slow `rocket`)
   and storm troopers (`runner`, all four `crush`able by the tank); bunkers (`turret` with a `cycle`: the slit only opens for
   2.3 s at a time, and a burst that has not finished when it shuts is called off), anti-tank guns (a one-second `tele`, then a
   flat fast `shell`), fighters (`flyer` that bombs) and landmines. The `mine` archetype (`ai.js`) lies still until the soldier
@@ -76,7 +76,7 @@ A def in `enemy_defs.js` is an archetype name plus numbers:
   calls `mineBlast` for every mine that dies, so a mine shot from a distance bursts harmlessly, a burst hurts the soldier (or
   one hit of a tank) within `blast` px and sets off neighbouring mines a beat later. (The hook lives in `enemies.js` because
   `enemy_defs.js` must not import `ai.js`.)
-* Week 13 enemies (the last era group): snow troopers and guards (`shooter`, the alarm's reinforcements are snow troopers),
+* Modern enemies (the last era group): snow troopers and guards (`shooter`, the alarm's reinforcements are snow troopers),
   sentry guns, snowmobiles (a `charger` with `passThrough`: jump it), recon drones, SAM sites (a `turret` with an upward `arc`
   that fires slow `rocket`s), cyborgs (burst `plasma`), hunter drones (`dive`), gunchoppers (`flyer` that `hover`s and fires
   bursts), sniper bots (a 1.15 s `tele`, then a fast `laser`), laser turrets, ceiling guns (a `turret` with `gdir: -1`, its
@@ -117,26 +117,26 @@ export default {
   boss at the arena's right edge. A clean kill (no deaths in the fight) pays an extra life.
 * A boss whose weak point is a rider above the body (the Chariot Champion) sets `h` tall enough for shots to reach it
   and `contactH` short, so only the body hurts on touch (`Enemy.contactBox`).
-* Week 10 bosses: the Siege Tower Titan (a low ram port that is open only while it rests: `'ground'` style), the Oni
+* Medieval bosses: the Siege Tower Titan (a low ram port that is open only while it rests: `'ground'` style), the Oni
   Warlord (its gem is out of reach of a standing shot: fight from a ledge, `'ledge'`) and the Ghost Galleon (a figurehead
   lantern at the bow, hooded during ghostfire and the maelstrom; broadsides fire a low ball to jump and a high ball to go
   prone under). Their art lives in `art/bosses_w10.js`.
-* Week 11 bosses: the Armored Locomotive (smokebox door open for gatling, coal and outlaws, shut behind steam and the
+* Industrial bosses: the Armored Locomotive (smokebox door open for gatling, coal and outlaws, shut behind steam and the
   derail surge: `'ground'`), the Iron Furnace Engine (mouth open for the belch and the workers, shut for pistons, slag and
   overload: `'ground'`) and the War Zeppelin (a flyer: the gondola is a low target for a soldier on the floor, covered during
   bomb runs, gas and the barrage: `'under'`). Their art lives in `art/bosses_w11.js`.
-* Week 12 boss: the Super-Heavy Tank. Its driver port is a low target for a standing soldier, open while it idles, hoses
+* Coastal-assault boss: the Super-Heavy Tank. Its driver port is a low target for a standing soldier, open while it idles, hoses
   from the roof gun or unloads troops, and shut behind the twin cannons (a LOW shell at floor-9 to jump, a HIGH shell at
   floor-22 to go prone under: the low one hits a prone soldier too), the mortar barrage, the crush shockwave and the phase-3
   flame columns (a gap is always left in the soldier's own column). `'ground'` style; art in `art/bosses_w12.js`.
-* Week 13 bosses (`art/bosses_w13.js`): the Missile Silo Mech (a tall walker: the reactor core in its chest is above a
+* Modern bosses (`art/bosses_w13.js`): the Missile Silo Mech (a tall walker: the reactor core in its chest is above a
   standing soldier's shot, so fight from a catwalk, `'ledge'`; the shutters close for the missile salvo and the silo launch),
   the Gunship Helicopter (a flyer, `'under'`: the chin turret is the weak point from below and is closed while the rocket
   pods are out and during the carpet bombing) and the AI Core Hydra (three heads on necks, `'ground'`: the eye in its chest
   is open between attacks and shut for the sweep and the laser storm; a head that lunges at a marked spot and sticks in the
   street is itself a target while it is stuck). The Hydra's `restPos` and `NECK_BASE` are exported so the painter and the
   attack code agree where a head rests.
-* Week 14 boss: the **Rift Warlord** (`bosses/warlord.js`, art in `art/bosses_w14.js`), the last boss. Its Rift Heart sits at a
+* Final boss: the **Rift Warlord** (`bosses/warlord.js`, art in `art/bosses_w14.js`), the last boss. Its Rift Heart sits at a
   standing soldier's gun height (`'ground'` style) but is covered by shutters except in the moments after it has spent an
   attack: open while it idles, while the blade is wedged in the floor after a `cleave` (a low shockwave each way to jump, then a
   `crescent` at chest height to go prone under), after a `blink` (it marks a spot behind the soldier, vanishes, reappears there
@@ -193,7 +193,7 @@ scheduler in `engine/audio.js` plays them 0.3 s ahead of the audio clock with os
 tests and `npm run musicwav`. A scene picks its track with a `music` property (`null` = silence, missing = keep what is
 playing); `PlayScene` switches to the boss track on `bossStart`, stops it on `bossDying`, and ducks it while paused.
 
-**Song form (Week 15).** The data of a track is one loop, but the song plays `passes` of them (default 4) and each pass is
+**Song form.** The data of a track is one loop, but the song plays `passes` of them (default 4) and each pass is
 arranged by pure rules in `arrange()`: **A** the loop as written, **B** the lead doubled an octave up in the second half,
 **C** a breakdown (no kick, snare or lead in the first half, arps and harmony pushed forward, then a rising snare roll
 back in) and **D** the finale (lead doubled throughout, harmony and open hats pushed). Every pass ends with a drum fill.
@@ -217,7 +217,7 @@ row per interval from the bottom once the player enters, with a rumble one secon
 zone by its final terrain, so a level only passes if a route exists once the lava has finished rising. Ice
 (`T.ICE`) is solid and slippery; `faller` enemies (icicles) shake for 0.7 s before dropping and can be shot down.
 
-Week 8 added more zones. `quicksand(n)` slows the soldier to 45% and drowns them after 2.6 s standing in it
+The Ancient era adds more zones. `quicksand(n)` slows the soldier to 45% and drowns them after 2.6 s standing in it
 (`MAX_QUICKSAND_TILES` keeps every crossing inside that). `chariot(x0, x1, speed)` is an autoscroll with a cosmetic
 car under the soldier. `arenaWaves(waves)` makes a one-screen flat arena: the camera slides onto it and locks, the
 waves run in from the left/right edges (or appear in place with `dx`/`y`, for archers on ledges) one wave at a time,
@@ -227,11 +227,11 @@ starts past it skips it). Waves must stay at or below the level's enemy cap; the
 
 Set dressing (`b.prop('mast' | 'prow' | 'banner', col, opts)`, drawn by `art/props.js`) changes nothing in play.
 
-Week 9 added `swells(x0, x1, {period, speed})` (longship decks): while the soldier is inside, a surf wave rolls in from
+The Viking levels add `swells(x0, x1, {period, speed})` (longship decks): while the soldier is inside, a surf wave rolls in from
 the right edge at deck height every `period` seconds and has to be jumped like a shockwave. Solid blocks stop it, so a
 bulwark is cover. Keep the zone's decks at one height (the swell travels at the height the zone was built at).
 
-Week 10 added three more mechanics. `barrage(x0, x1, {period, volley, spread, fuse, first})` (catapult fire): off-screen
+The medieval levels add three more mechanics. `barrage(x0, x1, {period, volley, spread, fuse, first})` (catapult fire): off-screen
 catapults lob flaming boulders (`launchRocket` with `kind: 'boulder'`) onto spots the soldier cannot avoid by standing
 still; a floor mark shows each landing `fuse` seconds ahead, the first boulder is aimed at the soldier's x and the others
 fan out by `spread`, so a soldier who keeps moving is safe. `shaft({w, h, through})` (levels with `wallJump: true`, which
@@ -242,7 +242,7 @@ fan out by `spread`, so a soldier who keeps moving is safe. `shaft({w, h, throug
 6 to 14 tiles, wider than a jump): a plank on ropes swings like a pendulum (`swing.js`; `World.platforms`), landing and
 carrying works like any moving platform, and the solver link is `'swing'` (the bot waits at the edge and `ride()`s).
 
-Week 11 added the Tesla Coil and two more hazards. The **Tesla Coil** (`tesla.js`, weapon `tesla`, era 3: levels 13-16) fires a
+The industrial levels add the Tesla Coil and two more hazards. The **Tesla Coil** (`tesla.js`, weapon `tesla`, era 3: levels 13-16) fires a
 short fast bolt whose `onHit` is `chainZap`: the bolt arcs on to up to `CHAIN_HOPS` (2) of the nearest visible,
 non-boss enemies within `CHAIN_RANGE` (78 px) for `CHAIN_DMG` each, drawing a jagged `zap` effect (hidden ambushers and bosses are
 never chained). `vent(col, {period, tele, hold, height, phase})` places a steam vent: it sleeps off screen, then every
@@ -251,7 +251,7 @@ never chained). `vent(col, {period, tele, hold, height, phase})` places a steam 
 (`launchRocket` with an `onBurst` callback) leaves a `gasCloud` of lingering `gas` puffs instead of sparks. A shell that
 lands on the soldier is a direct hit. `autoscroll` is used for the Desert Train, where the camera rolls on across the car roofs.
 
-Week 12 added the **rideable tank** (`tank.js`, `TANK` in `constants.js`). `LevelBuilder.tankRoad(x0, x1, {supply, dismount})`
+The coastal assault adds the **rideable tank** (`tank.js`, `TANK` in `constants.js`). `LevelBuilder.tankRoad(x0, x1, {supply, dismount})`
 checks that the stretch is level, solid and free of pits, spikes and blocks, then registers a `tank` zone and a tank pickup. A
 soldier on foot who walks into the first three columns climbs in (`Player.mountTank(road)`), and a soldier who respawns inside the
 zone is handed a fresh tank (`World.supplyTank`); at the far end of the road `leaveTank()` puts them back on foot. A tank is
@@ -263,7 +263,7 @@ the fourth wrecks the tank and throws the soldier clear with `EJECT_INVULN`; `fe
 flattens any enemy def marked `crush` that the tank touches, without a scratch. `barrage(..., {shell: true})` makes the catapults
 naval guns (`launchRocket` with a sparks burst). The HUD shows `TANK` with four pips and `art/tank.js` draws it and the parked one.
 
-Week 13 added three mechanics and one weapon (above). **Searchlights and the alarm** (`stealth.js`): `searchlight(xa, xb,
+The modern levels add three mechanics and one weapon (above). **Searchlights and the alarm** (`stealth.js`): `searchlight(xa, xb,
 {tower, height, period, phase, reach, troop})` needs one flat stretch (the builder checks every column) and registers a
 `'searchlight'` zone. A pool of light (`STEALTH.RADIUS`) sweeps along the ground between the two columns (`beamX`, a sine of
 the world clock); it only lights the strip `STEALTH.BAND` above the ground (a soldier on a high ledge is in the dark) and
@@ -404,7 +404,7 @@ water and lava never touch the baked art, and a flood of changes falls back to o
 layer is byte-identical to a full rebuild. A theme bundles sky bands, parallax layers, tile palettes, decor, liquids and an
 ambient particle effect.
 
-## Polish: input, effects and performance (Week 15)
+## Polish: input, effects and performance
 
 **Input.** `padActions(pad)` is a pure function from a gamepad to logical actions: a radial dead zone (0.3), eight
 direction sectors for the stick (so a diagonal gives two directions and a thumb that drifts off-axis gives none), the
@@ -429,7 +429,7 @@ level and boss, and `tests/integration/perf.test.js` pins the budgets (at most 2
 warm-up no canvases created while playing apart from a handful of 16 px tile variants when lava changes a tile's
 neighbours).
 
-## Balance and release (Week 16)
+## Balance and release
 
 **Lives economy.** The plan fixes the rules (3 lives, cap 6, 10 medals = a life, 20,000 then every 50,000 points, one hidden
 1UP per era group, a life for a flawless boss kill) and one outcome: the average player has about 4 lives entering Level 13.

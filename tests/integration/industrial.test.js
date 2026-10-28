@@ -1,4 +1,4 @@
-// Week 11 (rails, factories and trenches): the Tesla Coil, the desert train, steam vents, iron presses, gas shells, biplanes,
+// The industrial era (rails, factories and trenches): the Tesla Coil, the desert train, steam vents, iron presses, gas shells, biplanes,
 // the Armored Locomotive, the Iron Furnace Engine and the War Zeppelin.
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -1,4 +1,4 @@
-// Boss art for Week 12: the Super-Heavy Tank (level 16).
+// Boss art for Level 16: the Super-Heavy Tank (level 16).
 // Same conventions as bosses.js: a Brush in boss-local coordinates (origin = centre of the feet, +x = facing, -y = up).
 
 import { shade, mix } from './common.js';

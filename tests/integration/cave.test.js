@@ -1,4 +1,4 @@
-// Week 7: dark caves (lighting), torches, Level 4 and its hidden 1UP.
+// Dark caves (lighting), torches, Level 4 and its hidden 1UP.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';

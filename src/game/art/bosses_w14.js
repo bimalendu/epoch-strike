@@ -1,4 +1,4 @@
-// Boss art for Week 14: the Rift Warlord (level 20). Same conventions as bosses.js: a Brush in boss-local coordinates
+// Boss art for Level 20: the Rift Warlord (level 20). Same conventions as bosses.js: a Brush in boss-local coordinates
 // (origin = centre of the feet, +x = facing, -y = up).
 
 import { shade, mix } from './common.js';

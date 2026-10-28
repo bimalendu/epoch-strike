@@ -1,4 +1,4 @@
-// Week 10 (castles, shadows and sails): catapult barrages, shields and crossbows, wall jumps, ambushing ninjas, samurai
+// The medieval era (castles, shadows and sails): catapult barrages, shields and crossbows, wall jumps, ambushing ninjas, samurai
 // duels, rope swings, the Siege Tower Titan, the Oni Warlord and the Ghost Galleon.
 import test from 'node:test';
 import assert from 'node:assert/strict';

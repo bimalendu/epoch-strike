@@ -1,4 +1,4 @@
-// Boss art for Week 10: the Siege Tower Titan (level 10), the Oni Warlord (level 11) and the Ghost Galleon (level 12).
+// Boss art for Levels 10-12: the Siege Tower Titan (level 10), the Oni Warlord (level 11) and the Ghost Galleon (level 12).
 // Same conventions as bosses.js: a Brush in boss-local coordinates (origin = centre of the feet, +x = facing, -y = up).
 
 import { shade, mix } from './common.js';

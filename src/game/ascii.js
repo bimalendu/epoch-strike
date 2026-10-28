@@ -1,4 +1,4 @@
-// Build a level from ASCII art. Used by tests and the Week 1 test level.
+// Build a level from ASCII art. Used by tests and the test fixture level.
 //   #  solid      =  one-way platform   ^  spikes     ~  water     L  lava
 //   I  ice        >  conveyor right     <  conveyor left            :  quicksand
 //   W  wall       P  player spawn (feet at bottom of the cell)

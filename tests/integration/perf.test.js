@@ -1,4 +1,4 @@
-// Week 15 (performance): the art warm-up, steady-state allocation and per-frame cost budgets.
+// Performance: the art warm-up, steady-state allocation and per-frame cost budgets.
 //
 // Wall-clock time in Node says little about a phone, so the budgets are counts that carry over: canvas calls per frame
 // and canvases created while playing. The two wall-clock checks (the simulation step, and a bot-driven boss fight) are

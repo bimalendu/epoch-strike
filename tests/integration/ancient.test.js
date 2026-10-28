@@ -1,4 +1,4 @@
-// Week 8 mechanics: tower levels, wave arenas, chargers, shields, the Ballista Bolt and the chariot ride.
+// Ancient-era mechanics: wave arenas, chargers, shields, the Ballista Bolt and the chariot ride.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeInput, run, seconds } from '../support/helpers.js';
