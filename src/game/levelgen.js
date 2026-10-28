@@ -19,6 +19,18 @@ const VIEW_COLS = VIEW_W / TILE;
 const MAX_SHAFT_TILES = 3; // widest hollow a wall-kick zig-zag can climb // a boss arena is one screen wide
 import { T } from './tiles.js';
 
+/**
+ * The slope tiles for each nominal angle. `rise` is how many tiles one column of run climbs (a 22.5-degree slope takes two
+ * columns to climb a tile; a steep one climbs two tiles in one column). `up` lists the tiles of a column from the bottom cell
+ * to the top one, for a slope that rises to the right; `down` the same for one that falls to the right. A 22-degree column
+ * pair has one cell per column.
+ */
+const SLOPE_SHAPES = {
+  22: { rise: 0.5, up: [[T.RAMP22_R_LO], [T.RAMP22_R_HI]], down: [[T.RAMP22_L_HI], [T.RAMP22_L_LO]] },
+  45: { rise: 1, up: [[T.RAMP45_R]], down: [[T.RAMP45_L]] },
+  67: { rise: 2, up: [[T.STEEP_R_LO, T.STEEP_R_HI]], down: [[T.STEEP_L_LO, T.STEEP_L_HI]] },
+};
+
 export const DEFAULT_ROWS = 17;
 export const DEFAULT_GY = 13; // ground surface row for normal levels (feet at y = 208)
 
@@ -107,6 +119,7 @@ export class LevelBuilder {
     this.x = 0; // cursor column
     this.columns = []; // columns[x] = Uint8Array(rows)
     this.surface = []; // surface[x] = row of the top walkable tile, or -1 for a pit
+    this.surfacePx = []; // surfacePx[x] = ground height in px at the middle of column x, set for slope columns only
     this.spawns = [];
     this.checkpoints = [];
     this.prompts = [];
@@ -158,10 +171,21 @@ export class LevelBuilder {
       for (let y = this.gy; y < this.rows; y++) this.set(x, y, tile);
       if (top !== null) this.set(x, this.gy, top);
       this.surface[x] = this.gy;
+      this.surfacePx[x] = undefined;
     }
     this.laidGy = this.gy;
     this.x += n;
     return new Seg(this, x0, this.x);
+  }
+
+  /** Is column `x` part of a slope? Ramps are not flat ground, so zones that need a level floor refuse them. */
+  isSlope(x) {
+    return this.surfacePx[x] !== undefined;
+  }
+
+  /** Throw if any column from `x0` up to (not including) `x1` is a slope: `what` names the feature that needs level ground. */
+  requireLevel(x0, x1, what) {
+    for (let x = x0; x < x1; x++) if (this.isSlope(x)) throw new Error(`${what} needs level ground, but column ${x} is a slope`);
   }
 
   /** Step the ground up by `dh` tiles (at most MAX_STEP_UP_TILES). */
@@ -176,6 +200,51 @@ export class LevelBuilder {
   down(dh) {
     this.gy += dh;
     return this;
+  }
+
+  /**
+   * A slope of `dh` tiles: up when `dh` > 0, down when `dh` < 0. `angle` is the nominal angle: 22 (two columns of run per
+   * tile), 45 (one column per tile) or 67 (steep: one column per two tiles, so `dh` is even). Walkers climb 22 and 45 degrees
+   * freely, whatever the height; the soldier slides down a steep slope and cannot climb one, so a steep slope up is a ledge
+   * (at most MAX_STEP_UP_TILES, counted with any steps just before it) to jump onto. Zones that need flat ground refuse them.
+   */
+  slope(dh, { angle = 45 } = {}) {
+    const shape = SLOPE_SHAPES[angle];
+    if (!shape) throw new Error(`no ${angle}-degree slope: use 22, 45 or 67`);
+    if (!Number.isInteger(dh) || dh === 0) throw new Error('a slope climbs or falls a whole number of tiles');
+    const tiles = Math.abs(dh);
+    const run = tiles / shape.rise;
+    if (!Number.isInteger(run)) throw new Error(`a ${angle}-degree slope of ${tiles} tiles does not fit the tile grid`);
+    const steep = angle === 67;
+    if (steep && dh > 0) {
+      const rise = this.laidGy - (this.gy - dh);
+      if (rise > MAX_STEP_UP_TILES) throw new Error(`a steep slope of ${rise} tiles cannot be climbed: the soldier slides back down it`);
+    }
+    const g0 = this.gy;
+    const g1 = g0 - dh;
+    if (g1 < 3 || g1 > this.rows - 3) throw new Error(`a slope to row ${g1} leaves the level`);
+    const cells = dh > 0 ? shape.up : shape.down;
+    const x0 = this.x;
+    const startPx = g0 * TILE;
+    const endPx = g1 * TILE;
+    for (let i = 0; i < run; i++) {
+      const x = x0 + i;
+      this.col(x);
+      const passed = Math.floor(i * shape.rise); // whole tiles climbed (or fallen) before this column
+      const column = cells[i % cells.length]; // the column's cells, lowest first
+      // row of the column's lowest cell: a rising slope's cell sits just above the ground it came from, a falling slope's
+      // cell holds the ground it starts at (a steep slope's lowest cell is one row further down)
+      const bottomRow = dh > 0 ? g0 - 1 - passed : g0 + passed + (steep ? 1 : 0);
+      column.forEach((id, k) => this.set(x, bottomRow - k, id));
+      for (let y = bottomRow + 1; y < this.rows; y++) this.set(x, y, this.groundTile);
+      this.surface[x] = bottomRow - (column.length - 1);
+      this.surfacePx[x] = startPx + ((endPx - startPx) * (i + 0.5)) / run;
+    }
+    this.gy = g1;
+    // a ramp is part of one continuous route; a steep climb is a ledge, so steps after it still add up to its base
+    this.laidGy = steep && dh > 0 ? this.laidGy : g1;
+    this.x += run;
+    return new Seg(this, x0, this.x);
   }
 
   /** A raised block of ground: up(h), flat(w), down(h). */
@@ -229,6 +298,7 @@ export class LevelBuilder {
 
   /** Spikes standing on the ground, `n` tiles wide, starting `dx` tiles into the last flat segment. */
   spikes(seg, dx, n = 2) {
+    this.requireLevel(seg.x0 + dx, seg.x0 + dx + n, 'spikes');
     for (let i = 0; i < n; i++) {
       const x = seg.x0 + dx + i;
       this.set(x, this.surface[x] - 1, T.SPIKE);
@@ -245,6 +315,7 @@ export class LevelBuilder {
 
   /** A wall of solid tiles standing on the ground (jumpable when h <= MAX_STEP_UP_TILES). */
   block(x, w, h, tile = this.groundTile) {
+    this.requireLevel(x, x + w, 'a block');
     const g = this.surface[x] >= 0 ? this.surface[x] : this.gy;
     for (let i = 0; i < w; i++) for (let j = 1; j <= h; j++) this.set(x + i, g - j, tile);
     return this;
@@ -329,8 +400,9 @@ export class LevelBuilder {
   }
 
   // ---- entities ----
-  /** y (pixels, feet) of the ground at column x, falling back to the current surface. */
+  /** y (pixels, feet) of the ground at the middle of column x (the slope line on a ramp), falling back to the current surface. */
   groundY(x) {
+    if (this.isSlope(x)) return this.surfacePx[x];
     const s = this.surface[x];
     return (s >= 0 ? s : this.gy) * TILE;
   }
@@ -365,6 +437,7 @@ export class LevelBuilder {
   }
 
   addCheckpoint(col, row) {
+    this.requireLevel(col, col + 1, 'a checkpoint');
     this.checkpoints.push({ x: col * TILE, y: row !== undefined ? row * TILE : this.groundY(col) });
   }
 
@@ -415,6 +488,7 @@ export class LevelBuilder {
    * between the two columns. They are jumped like shockwaves; solid blocks stop them.
    */
   swells(x0, x1, { period = 4.2, speed = 105, first = 1.8 } = {}) {
+    this.requireLevel(x0, x1, 'a heaving deck');
     this.zones.push({ type: 'swells', x0: x0 * TILE, x1: x1 * TILE, floorY: this.gy * TILE, period, speed, first });
     return this;
   }
@@ -435,6 +509,7 @@ export class LevelBuilder {
    * brought in some other way (a tank pickup); `dismount: false` lets the tank carry on past x1.
    */
   tankRoad(x0, x1, { supply = true, dismount = true } = {}) {
+    this.requireLevel(x0, x1, 'a tank road');
     for (let x = x0; x < x1; x++) {
       if (this.surface[x] !== this.surface[x0] || this.surface[x] < 0) throw new Error(`tank road is not flat at column ${x}`);
       for (let y = 0; y < this.rows; y++) {
@@ -457,6 +532,7 @@ export class LevelBuilder {
    */
   searchlight(xa, xb, { tower = null, height = 8, period = 6.5, phase = 0, reach = 8, troop = 'snowtrooper' } = {}) {
     const col = tower ?? Math.round((xa + xb) / 2);
+    this.requireLevel(xa, xb + 1, 'a searchlight sweep');
     const floorY = this.groundY(xa);
     for (let x = xa; x <= xb; x++) if (this.surface[x] !== this.surface[xa] || this.surface[x] < 0) throw new Error('a searchlight sweeps over flat ground');
     this.zones.push({
@@ -486,6 +562,7 @@ export class LevelBuilder {
     if (n < 14) throw new Error('a gravity hall must be at least 14 columns long');
     const gy = this.gy;
     const from = this.x - 1;
+    this.requireLevel(from, from + 1, 'a gravity hall');
     if (this.surface[from] !== gy) throw new Error('a gravity hall starts on flat ground');
     const x0 = this.x;
     for (let i = 0; i < n; i++) {
@@ -532,6 +609,7 @@ export class LevelBuilder {
    * shells are artillery rounds that leave a cloud of poison gas lingering for `linger` seconds instead.
    */
   barrage(x0, x1, { period = 3.6, volley = 2, spread = 64, fuse = 1.35, first = 1.8, gas = false, linger = 3.4, shell = false } = {}) {
+    this.requireLevel(x0, x1, 'a barrage');
     this.zones.push({ type: 'barrage', x0: x0 * TILE, x1: x1 * TILE, floorY: this.gy * TILE, period, volley, spread, fuse, first, gas, linger, shell });
     return this;
   }
@@ -628,6 +706,13 @@ export class LevelBuilder {
   }
 
   // ---- finishing ----
+  /** Ground height in px at the middle of every column (-1 over a pit): what the art and the tools read instead of the tiles. */
+  groundProfile(cols) {
+    const out = new Array(cols);
+    for (let x = 0; x < cols; x++) out[x] = this.isSlope(x) ? this.surfacePx[x] : this.surface[x] >= 0 ? this.surface[x] * TILE : -1;
+    return out;
+  }
+
   finish() {
     const cols = this.x;
     const rows = this.rows;
@@ -656,6 +741,7 @@ export class LevelBuilder {
       tiles,
       spawn: { x: sx * TILE + TILE / 2, y: sRow * TILE },
       spawns,
+      ground: this.groundProfile(cols),
       checkpoints: this.checkpoints.slice().sort((a, b) => a.x - b.x),
       prompts: this.prompts,
       exitX: this.exitX,

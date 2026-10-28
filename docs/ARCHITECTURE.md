@@ -303,6 +303,17 @@ column (the LO cell sits under the HI cell).
   `SLOPE_STEP`, or half the body's width plus 2 for a wide tank), lifts the feet onto the surface after the X move, follows the
   ground down so a walker stays grounded on a descent, and slides a grounded body down a steep slope at `STEEP_SLIDE`.
   Walking into a steep slope uphill is a wall (the soldier has to jump it). The hoverbike ignores slopes.
+- `levelgen.js`: `b.slope(dh, { angle })` (`dh` > 0 climbs, < 0 falls; angle 22, 45 or 67) lays the cells and the solid fill under
+  them, keeps `surfacePx[x]` (the line's height at the middle of each column) so `groundY`, enemies, props and vents sit on the
+  slope, and exports `level.ground` (px per column, -1 over a pit). It refuses a steep climb taller than a jump (a steep slope
+  up is a ledge: the soldier slides back down it), and `requireLevel` makes checkpoints, spikes, blocks, tank roads, searchlight
+  sweeps, gravity halls, swells and barrages refuse a slope. Boss and wave arenas are laid with `flat()`, so they stay level.
+- `solver.js`: a slope cell is a spot with its own surface line (`lx,ly`-`rx,ry`, centre `cx,fy`). `joinKind` joins spots whose
+  surfaces meet end to end: a `walk` between ordinary ones, a one-way `slide` into, down and out of a steep slope (never
+  up). On a level with slopes the search runs in layers where walking and sliding are free, so the route walks a ramp rather
+  than leaping over it. `simulate` mirrors `moveBody` (lift onto a ramp, a steep face is a wall, a jump lands on the line).
+- `tools/bot.js` matches the soldier to a route node with `standingOn` (a slope node is a whole cell, so the feet only have to be
+  inside its rows) and jumps when pressed against a steep face.
 - `ascii.js` draws them in tests: `/` and `\` are 45 degrees, `1 2` / `4 3` the 22-degree pairs, `5 6` / `7 8` the steep ones.
 
 ## Levels

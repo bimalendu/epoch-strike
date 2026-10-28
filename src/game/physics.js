@@ -14,7 +14,7 @@ export const STEEP_SLIDE = 110;
 
 /**
  * The ground surface at pixel column `px` near the feet at `py`: scans the cell above the feet, the feet cell and the cell
- * below for the first slope with a surface there, or solid tile. Returns { id, y } with y the surface in world px, or
+ * below for the first slope with a surface there, or solid tile. Returns { id, tx, ty, y } (the tile and its cell) with y the surface in world px, or
  * null when there is nothing within reach. Ramps are not solid tiles, so the answer for them is the line across the cell.
  */
 export function surfaceAt(world, px, py) {
@@ -25,9 +25,9 @@ export function surfaceAt(world, px, py) {
     const t = world.tile(tx, ty);
     if (SLOPE[t]) {
       const h = floorHeight(t, local);
-      if (h > 0) return { id: t, y: (ty + 1) * TILE - h };
+      if (h > 0) return { id: t, tx, ty, y: (ty + 1) * TILE - h };
     } else if (SOLID[t]) {
-      return { id: t, y: ty * TILE };
+      return { id: t, tx, ty, y: ty * TILE };
     }
   }
   return null;

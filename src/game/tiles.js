@@ -81,3 +81,17 @@ export function uphillDir(id) {
 export function conveyorDir(t) {
   return t === T.CONV_R ? 1 : t === T.CONV_L ? -1 : 0;
 }
+
+/**
+ * The stretch of a slope tile that can be stood on, as local x px `[from, to]`: where the surface lies inside the cell. A
+ * 45-degree ramp spans the whole cell; the cells of a steep slope each span half of it (the low cell the left half of a rising
+ * `_R` slope, the high cell the right half). Returns null for a tile that is not a slope.
+ */
+export function slopeSpan(id) {
+  const line = SLOPE_LINE[id];
+  if (!line) return null;
+  const at = (h) => (16 * (h - line[0])) / (line[1] - line[0]);
+  const a = Math.min(at(0), at(16));
+  const b = Math.max(at(0), at(16));
+  return [Math.max(0, a), Math.min(16, b)];
+}

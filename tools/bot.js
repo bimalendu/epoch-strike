@@ -34,10 +34,22 @@ export class Bot {
     return sol.goal !== null;
   }
 
+  /**
+   * Is the soldier standing on route node `n`? A flat node needs the feet on its tile's top edge; a slope node is a whole cell
+   * whose surface line passes through it, so the feet only have to be inside the cell's rows (the soldier's row is not a
+   * round number there).
+   */
+  standingOn(n, p) {
+    if (Math.floor(p.x / TILE) !== n.x) return false;
+    if (n.slope) return p.y > n.y * TILE - 1 && p.y <= (n.y + 1) * TILE + 1;
+    return Math.round(p.y / TILE) === n.y;
+  }
+
   /** Is (sx, sy) on the straight walk between the current route node and the next? */
   onWalkLeg(sx, sy) {
     const a = this.path[this.idx];
     const b = this.path[this.idx + 1];
+    if ((a && a.slope) || (b && b.slope)) return false; // ramps are walked cell by cell: every cell is a node
     // the run-up into a gravity hall (a 'flip' link) and the fall on the far side count as part of the walk
     if (a && b && b.kind === 'flip') return a.y === sy && sy === b.y && sx >= a.x && sx * TILE <= b.data.x1 + 6 * TILE;
     if (!a || !b || b.kind !== 'walk' || a.y !== sy || b.y !== sy) return false;
@@ -201,7 +213,7 @@ export class Bot {
       const sy = Math.round(p.y / TILE);
       let k = -1;
       for (let i = Math.max(0, this.idx - 1); i < this.path.length; i++) {
-        if (this.path[i].x === sx && this.path[i].y === sy) {
+        if (this.standingOn(this.path[i], p)) {
           k = i;
           break;
         }
@@ -250,7 +262,8 @@ export class Bot {
     if (kind === 'jump') {
       // take off 4 px past the tile centre, the launch point the solver verified
       const c = cur.x * TILE + TILE / 2;
-      const atLip = next.x === cur.x || (next.x > cur.x ? p.x >= c + 4 : p.x <= c - 4);
+      // (a steep face can stop the soldier before that point: pressed against it, jump)
+      const atLip = next.x === cur.x || p.hitWall !== 0 || (next.x > cur.x ? p.x >= c + 4 : p.x <= c - 4);
       if (atLip) {
         out.jump = true;
         this.jumpHold = 1;
