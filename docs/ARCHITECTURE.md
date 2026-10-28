@@ -389,6 +389,24 @@ still comes from `world.fxRand`.
 * **Vignette** (`art/vignette.js`): 24 faint rings darken the screen edges (high quality only), and the same shape in red is the
   hurt flash for the first 0.45 s after a death (`world.deathT`). Both are cached overlays with their own warm-up task.
 
+**HUD and onboarding.** `art/hud.js drawHud(ctx, world, run, extra)` draws; `extra` carries what only the scene knows
+(`prompt`, `card`, `weaponLabel`, `intro`, `trail`), so the art still never changes anything.
+* **Plates**: translucent dark plates (cached in `build()`) behind the lives, score and weapon-slot clusters.
+* **Progress bar** (`game/progress.js levelProgress`, pure): the same goal the solver aims for (`exitX` or the boss trigger; for
+  a tower `exitY` or `boss.triggerY`). Ticks for checkpoints (lit once reached), a skull per boss arena (a boss rush has several)
+  and one at the end. Hidden during a boss fight and under any prompt, hint or title card.
+* **Title card**: a band that wipes in from the left, holds and wipes out over `CARD_TIME`, with `LEVEL nn`, the name and the era.
+* **Boss entrance**: while a boss is in its `enter` state `PlayScene.introK` eases to 1: letterbox bars and a name plate. The boss
+  bar's **damage trail** is scene state too (`PlayScene.trail`: it holds `TRAIL_HOLD` after a hit, then drains).
+* **Weapon label**: the name of the active weapon shows under the slots for 1.3 s whenever it changes (pickup, swap, the rifle
+  coming back after a death). The last life's head bobs.
+* **Toasts** (`scenes/toasts.js`): one banner at a time under the score, fed by `PlayScene.onEvent`: CHECKPOINT (this replaces the
+  old floating popup), the era weapon, the ninth medal, LAST LIFE. Ordinary weapons already name themselves in a popup.
+* **First-time hints** (`scenes/hints.js`): `HINTS` is a list of `{id, text, check(world, event)}`; `Hints.observe` queues one when
+  its check passes (events, and `null` for a plain frame so a hint can watch state, as the tank and bike ones do). A hint shows
+  once per save (`save.data.hints`, `markHint`/`hintSeen`), waits while a tutorial prompt or the level card is up, and uses the
+  prompt banner. `{switch}`-style tokens are filled in with the current device's button names. Add new ones at `<<HINTS>>`.
+
 ## Dev tools
 
 * `npm run shots` - menu, play, pause, results... into `docs/screenshots`.

@@ -4,6 +4,7 @@
 export const SAVE_KEY = 'epoch-strike-save-v1';
 const VERSION = 1;
 const MAX_SCORES = 10;
+const MAX_HINTS = 32;
 
 export const DEFAULT_OPTIONS = { sfx: 0.8, music: 0.6, difficulty: 'normal', shake: true, fx: 'high', touch: 'auto' };
 
@@ -40,7 +41,7 @@ export function defaultStorage() {
 const clamp01 = (v, d) => (typeof v === 'number' && isFinite(v) ? Math.min(1, Math.max(0, v)) : d);
 
 function blank() {
-  return { version: VERSION, unlocked: 0, options: { ...DEFAULT_OPTIONS }, scores: [], resume: null, cleared: 0 };
+  return { version: VERSION, unlocked: 0, options: { ...DEFAULT_OPTIONS }, scores: [], resume: null, cleared: 0, hints: [] };
 }
 
 function sanitizeScore(s) {
@@ -51,6 +52,13 @@ function sanitizeScore(s) {
     level: Math.max(0, Math.floor(s.level || 0)),
     date: typeof s.date === 'string' ? s.date.slice(0, 10) : '',
   };
+}
+
+/** The ids of the first-time hints already shown: a short list of short strings, nothing else. */
+function sanitizeHints(h) {
+  if (!Array.isArray(h)) return [];
+  const ids = h.filter((x) => typeof x === 'string' && /^[a-z0-9-]{1,24}$/.test(x));
+  return [...new Set(ids)].slice(0, MAX_HINTS);
 }
 
 function sanitizeResume(r) {
@@ -89,6 +97,7 @@ export class SaveData {
       d.scores.length = Math.min(d.scores.length, MAX_SCORES);
       d.resume = sanitizeResume(o.resume);
       d.cleared = Number.isInteger(o.cleared) && o.cleared > 0 ? Math.min(o.cleared, 999) : 0;
+      d.hints = sanitizeHints(o.hints);
     } catch (e) {
       return blank(); // corrupt JSON: start fresh
     }
@@ -171,6 +180,17 @@ export class SaveData {
       this.data.resume = null;
       this.save();
     }
+  }
+
+  hintSeen(id) {
+    return this.data.hints.includes(id);
+  }
+
+  /** Remember that a first-time hint has been shown, so it never comes back. */
+  markHint(id) {
+    if (this.hintSeen(id) || this.data.hints.length >= MAX_HINTS) return;
+    this.data.hints.push(id);
+    this.save();
   }
 
   setOption(key, value) {

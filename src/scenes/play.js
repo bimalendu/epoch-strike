@@ -7,6 +7,10 @@ import { renderWorld } from '../game/render.js';
 import { drawHud } from '../game/art/hud.js';
 import { drawText } from '../engine/font.js';
 import { popup } from '../game/fx.js';
+import { weaponDef } from '../game/weapons.js';
+import { PICKUPS } from '../game/pickups.js';
+import { Toasts } from './toasts.js';
+import { Hints } from './hints.js';
 import { Menu, wantsBack } from '../ui/menu.js';
 import { OptionsScene } from './options.js';
 import { VIEW_W, VIEW_H } from '../game/constants.js';
@@ -17,6 +21,9 @@ export const CLEAR_DELAY = 1.8; // seconds of victory before the results screen
 const CARD_TIME = 2.2; // level name card
 export const HIT_STOP = { death: 3, phase: 4, bossDown: 5 }; // frames the whole game holds still for
 export const BOSS_SLOWMO = 0.8; // seconds the boss's death plays at half speed
+const WEAPON_LABEL_TIME = 1.3; // seconds a newly active weapon is named under the slots
+const TRAIL_HOLD = 0.4; // seconds the boss bar's damage trail waits before it drains
+const TRAIL_DRAIN = 0.3; // boss health (as a fraction of the total) the trail drains per second
 
 export class PlayScene {
   /**
@@ -53,6 +60,14 @@ export class PlayScene {
     this.freezeF = 0; // frames of hit-stop left: the world does not step at all
     this.slowT = 0; // seconds of slow motion left: the world steps every other frame
     this.slowSkip = false;
+    this.toasts = new Toasts();
+    this.hints = new Hints(game.save);
+    this.weaponLabel = { text: '', color: '#ffffff', t: 0 }; // the active weapon's name, shown for a moment after a change
+    this.lastWeapon = null;
+    this.introK = 0; // 0..1: how far into a boss's entrance (letterbox bars, name plate)
+    this.trail = 0; // the boss bar's damage trail, in hit points
+    this.trailHold = 0;
+    this.lastShown = 0;
     this.cardT = resume ? 0 : CARD_TIME;
     this.pauseMenu = this.makePauseMenu();
   }
@@ -128,8 +143,13 @@ export class PlayScene {
     this.run.timeThisLevel += dt;
     if (this.cardT > 0) this.cardT -= dt;
     w.update(input, dt);
-    for (const e of w.events) this.onEvent(e);
+    for (const e of w.events) {
+      this.onEvent(e);
+      this.hints.observe(w, e);
+    }
     w.events.length = 0;
+    this.hints.observe(w);
+    this.updateHudState(w, dt);
 
     if (this.clearT >= 0) {
       this.clearT += dt;
@@ -147,6 +167,37 @@ export class PlayScene {
     }
   }
 
+  /** The bits of the HUD that animate on their own clock: toasts, hints, the weapon label, the boss entrance and trail. */
+  updateHudState(w, dt) {
+    const raw = w.promptAt();
+    this.toasts.update(dt);
+    this.hints.update(dt, !!raw || this.cardT > 0 || !w.player.alive);
+    // name the weapon whenever the active one changes (a pickup, a swap, the rifle coming back after a death)
+    const id = w.player.weapon;
+    if (this.lastWeapon !== null && id !== this.lastWeapon && id) {
+      const wd = weaponDef(id);
+      this.weaponLabel = { text: wd.name, color: wd.badge || wd.color, t: WEAPON_LABEL_TIME };
+    } else if (this.weaponLabel.t > 0) this.weaponLabel.t -= dt;
+    this.lastWeapon = id;
+    // boss entrance and damage trail
+    const b = w.boss;
+    const entering = !!(b && b.bs && b.bs.state === 'enter');
+    this.introK += ((entering ? 1 : 0) - this.introK) * Math.min(1, 6 * dt);
+    if (this.introK < 0.01) this.introK = 0;
+    if (b && b.bs) {
+      const shown = b.bs.shownHp;
+      if (shown < this.lastShown - 1e-6) this.trailHold = TRAIL_HOLD; // fresh damage: the trail waits a moment again
+      this.lastShown = shown;
+      if (shown >= this.trail || entering) this.trail = shown;
+      else if (this.trailHold > 0) this.trailHold -= dt;
+      else this.trail = Math.max(shown, this.trail - b.maxHp * TRAIL_DRAIN * dt);
+    } else {
+      this.trail = 0;
+      this.trailHold = 0;
+      this.lastShown = 0;
+    }
+  }
+
   onEvent(e) {
     const run = this.run;
     const w = this.world;
@@ -156,10 +207,19 @@ export class PlayScene {
         run.deathsThisLevel++;
         run.totalDeaths++;
         this.freezeF = HIT_STOP.death;
+        if (run.lives.lives === 1) this.toasts.push('LAST LIFE', { color: '#ff6a6a' });
         break;
       case 'checkpoint':
         run.checkpoint = { levelIndex: this.levelIndex, x: e.x, y: e.y };
+        this.toasts.push('CHECKPOINT', { color: '#8be9ff' });
         break;
+      case 'pickup': {
+        // ordinary weapons already name themselves in a popup; the era weapon of the level is worth a banner
+        const d = PICKUPS[e.item];
+        const wd = d && d.kind === 'weapon' ? weaponDef(d.weapon) : null;
+        if (wd && wd.era !== undefined) this.toasts.push(`ERA WEAPON: ${wd.name}`, { color: '#ffd23a', big: true, hold: 1.6 });
+        break;
+      }
       case 'kill': {
         if (!e.score) break;
         const r = run.score.addKill(e.score, w.time);
@@ -174,6 +234,7 @@ export class PlayScene {
       case 'medal':
         popup(w, e.x, e.y - 6, '500', '#ffd23a');
         this.lifeEvents(run.collectMedal());
+        if (run.lives.medalProgress === 9) this.toasts.push('1 MEDAL TO A 1UP', { color: '#ffd23a' });
         break;
       case 'oneup':
         this.lifeEvents(run.collectOneUp());
@@ -253,10 +314,16 @@ export class PlayScene {
     const name = levelName(this.levelIndex);
     renderWorld(ctx, this.world);
     const raw = this.world.promptAt();
-    drawHud(ctx, this.world, this.run, {
-      prompt: raw && this.world.player.alive && this.cardT <= 0 ? this.game.input.fill(raw) : null,
-      card: this.cardT > 0 ? { t: this.cardT, title: this.level.name || name, subtitle: this.level.era || '' } : null,
+    const w = this.world;
+    const prompt = raw && w.player.alive && this.cardT <= 0 ? raw : this.hints.text;
+    drawHud(ctx, w, this.run, {
+      prompt: prompt ? this.game.input.fill(prompt) : null,
+      card: this.cardT > 0 ? { t: this.cardT, total: CARD_TIME, title: this.level.name || name, subtitle: this.level.era || '', number: this.levelIndex + 1 } : null,
+      weaponLabel: this.weaponLabel,
+      intro: this.introK,
+      trail: this.trail,
     });
+    this.toasts.draw(ctx, w.boss ? 62 : 36);
     if (this.clearT >= 0) {
       drawText(ctx, 'STAGE CLEAR', VIEW_W / 2, 110, '#ffd23a', 3, 'center', '#000000');
     }

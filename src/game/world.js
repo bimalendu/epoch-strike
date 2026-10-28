@@ -720,7 +720,6 @@ export class World {
         c.hit = true;
         this.checkpoint = { x: c.x, y: c.y };
         this.sfx('checkpoint');
-        popup(this, p.x, p.y - 40, 'CHECKPOINT', '#8be9ff');
         this.events.push({ type: 'checkpoint', x: c.x, y: c.y });
       }
     }

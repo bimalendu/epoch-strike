@@ -28,6 +28,13 @@ import { BULLET_ART } from '../src/game/art/bullets.js';
 import { renderWorld } from '../src/game/render.js';
 import { warmTasks } from '../src/game/art/warm.js';
 import { mix } from '../src/game/art/common.js';
+import { drawHud } from '../src/game/art/hud.js';
+import { Toasts } from '../src/scenes/toasts.js';
+import { Hints, HINTS, HINT_TIME } from '../src/scenes/hints.js';
+import { SaveData, MemoryStorage, SAVE_KEY } from '../src/game/save.js';
+import { levelProgress } from '../src/game/progress.js';
+import { buildLevel, levelCount } from '../src/game/levels.js';
+import { VIEW_W, VIEW_H } from '../src/game/constants.js';
 
 /** Total brightness and number of visible pixels of a canvas. */
 function measure(c) {
@@ -305,4 +312,185 @@ test('warm-up covers the sky of every theme, the glow sprites and the vignettes'
   const names = warmTasks().map((t) => t.name);
   for (const id of Object.keys(THEMES)) assert.ok(names.includes(`sky ${id}`), `sky ${id}`);
   assert.ok(names.includes('glow') && names.includes('vignette') && names.includes('vignette red'));
+});
+
+// ---- HUD and onboarding ----
+
+test('toasts: one banner at a time, a repeated text is not queued twice, and each one goes away on its own', () => {
+  const t = new Toasts();
+  t.push('CHECKPOINT');
+  t.push('CHECKPOINT');
+  t.push('LAST LIFE');
+  assert.equal(t.queue.length, 2, 'CHECKPOINT and LAST LIFE: the repeat was dropped');
+  t.update(0.01);
+  assert.equal(t.cur.text, 'CHECKPOINT');
+  const c = whiteCanvas();
+  t.update(0.4);
+  t.draw(c.getContext('2d'), 36);
+  assert.ok(measure(c).sum < 480 * 270 * 3 * 255, 'it draws something');
+  t.update(2);
+  assert.equal(t.cur, null, 'it has gone');
+  t.update(0.01);
+  assert.equal(t.cur.text, 'LAST LIFE', 'then the next one');
+  for (let i = 0; i < 10; i++) t.push(`T${i}`);
+  assert.ok(t.queue.length <= 3, 'the queue is short');
+});
+
+function hintWorld(over = {}) {
+  return { player: { slots: ['rifle', null], mode: 'foot', alive: true }, ...over };
+}
+
+test('hints: shown once per save, wait while something else is on the banner, and are remembered', () => {
+  const storage = new MemoryStorage();
+  const save = new SaveData(storage);
+  const h = new Hints(save);
+  const w = hintWorld();
+  h.observe(w, { type: 'pickup', item: 'S' });
+  assert.equal(h.queue.length, 0, 'one weapon: nothing to swap to');
+  w.player.slots = ['rifle', 'spread'];
+  h.observe(w, { type: 'pickup', item: 'S' });
+  h.update(0.1, true);
+  assert.equal(h.text, null, 'blocked by a tutorial prompt');
+  h.update(0.1, false);
+  assert.match(h.text, /\{switch\}/);
+  assert.ok(save.hintSeen('swap'), 'remembered as soon as it is shown');
+  h.update(HINT_TIME + 0.1, false);
+  assert.equal(h.text, null);
+  h.observe(w, { type: 'pickup', item: 'S' });
+  assert.equal(h.queue.length, 0, 'never again');
+  assert.ok(new SaveData(storage).hintSeen('swap'), 'and it survives a reload');
+  // state-based hints watch the world on plain frames
+  const t = new Hints(new SaveData(new MemoryStorage()));
+  t.observe(hintWorld({ player: { slots: ['rifle', null], mode: 'tank', alive: true } }));
+  assert.equal(t.queue[0].id, 'tank');
+  for (const id of new Set(HINTS.map((x) => x.id))) assert.match(id, /^[a-z0-9-]{1,24}$/);
+  assert.equal(new Set(HINTS.map((x) => x.id)).size, HINTS.length, 'ids are unique');
+});
+
+test('save: the list of shown hints is cleaned on load', () => {
+  const storage = new MemoryStorage();
+  storage.setItem(SAVE_KEY, JSON.stringify({ version: 1, hints: ['swap', 7, 'BAD ID', 'x'.repeat(40), 'swap', 'bomb', null] }));
+  assert.deepEqual(new SaveData(storage).data.hints, ['swap', 'bomb']);
+  storage.setItem(SAVE_KEY, JSON.stringify({ version: 1, hints: 'rubbish' }));
+  assert.deepEqual(new SaveData(storage).data.hints, []);
+  const s = new SaveData(new MemoryStorage());
+  for (let i = 0; i < 50; i++) s.markHint(`h${i}`);
+  assert.ok(s.data.hints.length <= 32, 'the list cannot grow without end');
+});
+
+test('progress: every level has a bar that starts empty, ends full and keeps its markers in order', () => {
+  for (let i = 0; i < levelCount(); i++) {
+    const L = buildLevel(i);
+    const w = new World(L, {});
+    const pr = levelProgress(w);
+    assert.ok(pr, `level ${i + 1} has a bar`);
+    assert.equal(pr.vertical, (L.exitY ?? (L.boss ? L.boss.triggerY : undefined)) !== undefined, `level ${i + 1}: climbing or running`);
+    assert.ok(pr.frac < 0.02, `level ${i + 1} starts at the start (${pr.frac})`);
+    const f = pr.checkpoints.map((c) => c.f);
+    for (const v of f) assert.ok(v >= 0 && v <= 1, `level ${i + 1} checkpoint ${v}`);
+    assert.equal(pr.arenas.length, w.arenas.length - 1, `level ${i + 1}: a skull per boss arena before the last`);
+    // standing at the goal fills the bar
+    if (pr.vertical) w.player.y = L.exitY ?? L.boss.triggerY;
+    else w.player.x = L.exitX ?? L.boss.trigger;
+    assert.equal(levelProgress(w).frac, 1, `level ${i + 1} ends full`);
+  }
+});
+
+test('HUD: plates, the progress bar, the title card, the weapon label and the boss entrance', () => {
+  const w = new World(buildLevel(1), {});
+  const run = new Run();
+  const hud = (extra, canvas = whiteCanvas(), world = w) => {
+    drawHud(canvas.getContext('2d'), world, run, extra);
+    return canvas;
+  };
+  // a plate behind the corner clusters
+  const plain = hud({});
+  assert.notEqual(colourAt(plain, 78, 8), '#ffffff', 'the lives plate');
+  assert.equal(colourAt(plain, 120, 8), '#ffffff', 'but only behind the lives');
+  // the bar along the bottom, gone while a prompt is up
+  assert.notEqual(colourAt(plain, 240, VIEW_H - 5), '#ffffff', 'progress bar');
+  assert.equal(colourAt(hud({ prompt: 'JUMP' }), 240, VIEW_H - 5), '#ffffff', 'hidden under a prompt');
+  // the title card wipes in, holds, and wipes out
+  const card = (t) => hud({ card: { t, total: 2.2, title: 'DINO JUNGLE', subtitle: 'CRETACEOUS', number: 1 } });
+  assert.equal(colourAt(card(2.2), 40, 100), '#ffffff', 'not there yet');
+  assert.notEqual(colourAt(card(1.2), 40, 90), '#ffffff', 'band at full width');
+  assert.equal(colourAt(card(0.0001), 40, 90), '#ffffff', 'gone again');
+  // the weapon label
+  const label = (l) => measure(hud({ weaponLabel: l })).sum;
+  assert.ok(label({ text: 'SPREAD', color: '#00ff00', t: 1 }) < label(null), 'named under the slots');
+  assert.equal(label({ text: 'SPREAD', color: '#00ff00', t: 0 }), label(null), 'and not once it has faded');
+  // a boss: letterbox bars during the entrance, and a trail where health was lost
+  const boss = { maxHp: 80, echo: false, def: { name: 'REX-7', phases: [{ hp: 1 }, { hp: 0.5 }] }, bs: { state: 'enter', age: 0.1, shownHp: 40, phase: 0 } };
+  const bw = { ...w, boss, player: w.player, level: { ...w.level, era: 'CRETACEOUS' } };
+  assert.equal(colourAt(hud({ intro: 1 }, whiteCanvas(), bw), 240, 0), '#000000', 'top bar');
+  assert.equal(colourAt(hud({ intro: 1 }, whiteCanvas(), bw), 240, VIEW_H - 1), '#000000', 'bottom bar');
+  assert.equal(colourAt(hud({ intro: 0 }, whiteCanvas(), bw), 240, 0), '#ffffff', 'no bars once it has arrived');
+  boss.bs.state = 'idle';
+  const bx = Math.round((VIEW_W - 220) / 2);
+  assert.equal(colourAt(hud({ trail: 60 }, whiteCanvas(), bw), bx + Math.round(220 * 0.6), 38), '#ffffff', 'the trail (white) where health was');
+  assert.equal(colourAt(hud({ trail: 0 }, whiteCanvas(), bw), bx + Math.round(220 * 0.6), 38), '#4a1218', 'the empty part of the bar');
+});
+
+function sceneFixture() {
+  const f = playScene();
+  return { ...f, scene: f.game.scene, run: f.game.scene.run, toastTexts: () => [f.game.scene.toasts.cur, ...f.game.scene.toasts.queue].filter(Boolean).map((t) => t.text) };
+}
+
+test('play scene: toasts for a checkpoint, the era weapon, the ninth medal and the last life, and for nothing else', () => {
+  const { scene, run, toastTexts } = sceneFixture();
+  scene.onEvent({ type: 'checkpoint', x: 10, y: 10 });
+  scene.onEvent({ type: 'pickup', item: 'M' });
+  assert.deepEqual(toastTexts(), ['CHECKPOINT'], 'an ordinary weapon names itself in a popup already');
+  scene.onEvent({ type: 'pickup', item: 'spear' });
+  assert.ok(toastTexts().includes('ERA WEAPON: FIRE SPEAR'));
+  run.lives.medals = 3;
+  scene.onEvent({ type: 'medal', x: 0, y: 0 });
+  assert.ok(!toastTexts().some((t) => t.includes('MEDAL')), 'the fourth medal is not news');
+  run.lives.medals = 8;
+  scene.onEvent({ type: 'medal', x: 0, y: 0 });
+  assert.ok(toastTexts().includes('1 MEDAL TO A 1UP'));
+  run.lives.lives = 3;
+  scene.onEvent({ type: 'playerDied', cause: 'test' });
+  assert.ok(!toastTexts().includes('LAST LIFE'), 'two left');
+  scene.onEvent({ type: 'playerDied', cause: 'test' });
+  assert.ok(toastTexts().includes('LAST LIFE'));
+});
+
+test('play scene: a new weapon is named under the slots for a moment, and a first-time hint waits for the level card', () => {
+  const { game, scene, world } = sceneFixture();
+  const w = world();
+  assert.equal(scene.weaponLabel.t, 0, 'nothing to say about the weapon you start with');
+  w.player.giveWeapon('spread');
+  w.events.push({ type: 'pickup', item: 'S' });
+  stepN(game, 1);
+  assert.equal(scene.weaponLabel.text, 'SPREAD');
+  assert.ok(scene.weaponLabel.t > 1);
+  assert.equal(scene.hints.text, null, 'the level card is still on screen');
+  assert.ok(scene.hints.queue.some((h) => h.id === 'swap'));
+  stepN(game, 60 * 3);
+  assert.match(scene.hints.text, /SWAPS BETWEEN/);
+  assert.ok(scene.weaponLabel.t <= 0, 'the label has faded');
+  game.render();
+  assert.ok(game.save.hintSeen('swap'));
+});
+
+test('play scene: the boss entrance and damage trail follow the boss, and are gone without one', () => {
+  const { game, scene, world } = sceneFixture();
+  const w = world();
+  stepN(game, 3);
+  assert.equal(scene.introK, 0);
+  w.boss = { maxHp: 100, hp: 100, bs: { state: 'enter', shownHp: 100 } };
+  scene.updateHudState(w, 1 / 60);
+  scene.updateHudState(w, 1 / 60);
+  assert.ok(scene.introK > 0.05, 'bars closing in');
+  assert.equal(scene.trail, 100);
+  w.boss.bs.state = 'idle';
+  w.boss.bs.shownHp = 70; // took 30
+  scene.updateHudState(w, 1 / 60);
+  assert.equal(scene.trail, 100, 'the trail holds for a moment');
+  for (let i = 0; i < 60 * 3; i++) scene.updateHudState(w, 1 / 60);
+  assert.equal(scene.trail, 70, 'then drains down to the real health');
+  w.boss = null;
+  scene.updateHudState(w, 1 / 60);
+  assert.equal(scene.trail, 0);
 });
