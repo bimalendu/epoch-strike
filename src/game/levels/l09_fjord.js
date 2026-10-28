@@ -2,6 +2,9 @@
 // piers), ford a river patrolled by sea serpents (they ripple before they strike), then cross three longship decks on
 // a heaving sea: a swell races along the deck every few seconds and has to be jumped (the bulwarks are cover).
 // The last ship carries the Kraken.
+//
+// The shore is a fjord's: pine slopes at 22 degrees, a 45-degree cliff path with scree sliding down to the river, and a path up to
+// the piers. The decks of the longships (and the swells that race along them) are level, as is the Kraken's.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -14,44 +17,51 @@ export const fjord = {
   bulletScale: 1.0,
   build(def) {
     const b = new LevelBuilder({ ...def, id: 8 });
-    const wet = () => b.gy + 1; // the row of the water surface in a ford
 
-    // --- 1. The landing beach ---
-    let s = b.flat(34);
+    // --- 1. The landing beach: the shore rises into the first pine slope and falls again ---
+    let s = b.flat(14);
     s.capsule('E', 6, 6);
     s.prompt('BERSERKERS RUN FASTER WHEN HURT. KEEP SHOOTING', 2, 20);
-    s.enemy('berserker', 16);
-    s.enemy('axethrower', 25);
-    s.medals(9, 11, 3, 2);
+    b.slope(2, { angle: 22 });
+    s = b.flat(8);
+    s.enemy('berserker', 4);
+    s.medalsAbove(1, 3, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(12);
+    s.enemy('axethrower', 8);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 2. The first ford: the water ripples, then a serpent breaks out ---
-    s = b.flat(16);
+    // --- 2. The cliff path and the first ford: scree down to the river, the water ripples, then a serpent breaks out ---
+    s = b.flat(8);
     s.checkpoint(1);
-    s.prompt('THE WATER RIPPLES. A SERPENT IS ABOUT TO LEAP', 4, 14);
-    s.enemy('axethrower', 10);
+    b.slope(2, { angle: 45 });
+    s = b.flat(6);
+    s.enemy('axethrower', 3);
+    b.slope(-2, { angle: 67 });
+    s = b.flat(10);
+    s.prompt('THE WATER RIPPLES. A SERPENT IS ABOUT TO LEAP', 1, 14);
     const ford = b.pit(5, { fill: 'water' });
-    b.addEnemy('serpent', ford.x0 + 2, { row: wet() });
-    b.platform(ford.x0 + 1, 10, 3);
+    b.addEnemy('serpent', ford.x0 + 2, { row: b.gy + 1 });
+    b.platform(ford.x0 + 1, b.gy - 4, 3);
     s = b.flat(20);
     s.enemy('berserker', 8);
     s.enemy('berserker', 13);
     s.capsule('S', 6, 6);
-    s.medals(6, 10, 4, 2, 2);
+    s.medalsAbove(6, 4, 3, 2, 2);
 
-    // --- 3. The piers ---
-    b.up(2);
+    // --- 3. The piers: a 45-degree path up to the jetty ---
+    b.slope(2, { angle: 45 });
     s = b.flat(16);
     s.checkpoint(1);
     s.enemy('axethrower', 5);
     s.enemy('axethrower', 11);
-    b.platform(s.x0 + 4, 9, 7);
-    b.down(2);
+    b.platform(s.x0 + 4, b.gy - 3, 7);
+    b.slope(-2, { angle: 45 });
     s = b.flat(14);
     s.enemy('berserker', 6);
-    s.enemy('drone', 10, { row: 6 });
+    s.enemy('drone', 10, { row: b.rowAbove(8) });
     b.pit(4, { fill: 'water' });
-    b.addEnemy('serpent', b.x - 2, { row: wet() });
+    b.addEnemy('serpent', b.x - 2, { row: b.gy + 1 });
     s = b.flat(16);
     s.enemy('berserker', 8);
     s.enemy('axethrower', 13);
@@ -72,7 +82,7 @@ export const fjord = {
     s.enemy('axethrower', 17);
     b.prop('prow', s.x1 - 2, { dir: 1 });
     b.pit(4, { fill: 'water' });
-    b.addEnemy('serpent', b.x - 2, { row: wet() });
+    b.addEnemy('serpent', b.x - 2, { row: b.gy + 1 });
     // ship two
     s = b.flat(22);
     s.checkpoint(1);
@@ -86,7 +96,7 @@ export const fjord = {
     s.medals(10, 10, 3, 2);
     b.prop('prow', s.x1 - 2, { dir: 1 });
     b.pit(5, { fill: 'water' });
-    b.addEnemy('serpent', b.x - 3, { row: wet() });
+    b.addEnemy('serpent', b.x - 3, { row: b.gy + 1 });
     b.platform(b.x - 4, 11, 3);
     // ship three
     s = b.flat(22);

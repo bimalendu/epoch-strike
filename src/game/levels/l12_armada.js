@@ -2,6 +2,9 @@
 // rails, deck cannons lob balls), then cross the armada ship by ship: the hulls are too far apart to jump, so you ride
 // ROPE SWINGS between them (step on when the plank comes in, ride across, step off). Gulls dive at you in mid-swing.
 // The last deck is rammed alongside the Ghost Galleon.
+//
+// The shore is a rocky coast: 22-degree rises, a 45-degree ramp up the harbour wall to the cannon battery and a steep scree bank down
+// to the dock. The ships (and the rope swings between them) are level, as the decks of a ship are.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -15,38 +18,49 @@ export const armada = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 11 });
 
-    // --- 1. The quay: the first cutlass ---
-    let s = b.flat(36);
+    // --- 1. The quay: a rocky coast, and the first cutlass ---
+    let s = b.flat(14);
     s.capsule('E', 6, 6);
     s.prompt('PIRATES LEAP WHEN YOU COME CLOSE. SHOOT THEM BEFORE THEY LAND', 2, 22);
-    s.enemy('pirate', 16);
-    s.enemy('buccaneer', 28);
-    s.medals(8, 11, 3, 2);
     b.prop('banner', s.x0 + 4);
+    b.slope(2, { angle: 22 });
+    s = b.flat(10);
+    s.enemy('pirate', 4);
+    s.medalsAbove(2, 3, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(12);
+    s.enemy('buccaneer', 6);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 2. The harbour: deck cannons and a flock of gulls ---
-    s = b.flat(40);
+    // --- 2. The harbour: a 45-degree ramp up the harbour wall to the cannon battery, and a flock of gulls ---
+    s = b.flat(10);
     s.checkpoint(1);
     s.prompt('DECK CANNONS LOB BALLS IN AN ARC. WATCH THE BARREL TURN, THEN MOVE', 1, 24);
-    s.enemy('pirate', 9);
-    s.enemy('deckcannon', 17);
-    s.enemy('pirate', 24);
-    s.enemy('buccaneer', 31);
-    s.enemy('gull', 20, { row: 5 });
-    s.capsule('S', 14, 6);
-    s.medals(24, 10, 4, 2, 2);
-    b.prop('banner', s.x0 + 20, { h: 80 });
+    s.enemy('pirate', 6);
+    b.slope(3, { angle: 45 });
+    s = b.flat(18);
+    s.enemy('deckcannon', 5);
+    s.enemy('pirate', 12);
+    s.enemy('gull', 9, { row: 5 });
+    s.capsule('S', 3, b.rowAbove(8));
+    s.medalsAbove(7, 4, 2, 2, 2);
+    b.prop('banner', s.x0 + 8, { h: 80 });
+    b.slope(-3, { angle: 45 });
+    s = b.flat(12);
+    s.enemy('buccaneer', 6);
     b.pit(4, { fill: 'spikes' });
-    b.platform(b.x - 4, 10, 3);
+    b.platform(b.x - 4, b.gy - 4, 3);
 
-    // --- 3. The gangway ---
+    // --- 3. The gangway: down the scree bank to the dock ---
+    b.slope(2, { angle: 45 });
+    b.flat(3);
+    b.slope(-2, { angle: 67 });
     s = b.flat(16);
     s.enemy('buccaneer', 4);
     s.enemy('pirate', 11);
     s.capsule('M', 8, 6);
     b.pit(5, { fill: 'spikes' });
-    b.platform(b.x - 5, 10, 3, { kind: 'one-way' });
+    b.platform(b.x - 5, b.gy - 4, 3, { kind: 'one-way' });
 
     // --- 4. The first ship: the rope swing ---
     s = b.flat(24);

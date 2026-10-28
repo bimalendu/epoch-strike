@@ -2,6 +2,9 @@
 // step out when you come close (a puff of smoke, then they strike), samurai guard the courtyard and dash in a flat slash
 // after a long wind-up, and the road climbs through the keep by WALL JUMPS: kick off the stone, zig-zag up a shaft,
 // land on the wall top. One tall tower beside the road hides a 1UP at the top. The Oni Warlord holds the roof garden.
+//
+// The castle stands on a mountainside: the road climbs 22-degree rises and a 45-degree stone stair, and a cliff drops a steep scree
+// slide. The wall-jump shafts stay where the road is level (their height is measured from the ground), and so does the arena.
 
 import { LevelBuilder } from '../levelgen.js';
 
@@ -16,31 +19,39 @@ export const shadowCastle = {
   build(def) {
     const b = new LevelBuilder({ ...def, id: 10 });
 
-    // --- 1. The torii gate: the first ambush ---
-    let s = b.flat(36);
+    // --- 1. The torii gate: the first ambush, on a moonlit rise ---
+    let s = b.flat(12);
     s.capsule('E', 6, 6);
     s.prompt('NINJAS HIDE IN THE SHADOWS. THEY STEP OUT WHEN YOU COME CLOSE', 2, 24);
-    s.enemy('ninja', 16);
-    s.enemy('shinobi', 27);
-    s.medals(8, 11, 3, 2);
     b.prop('torii', s.x0 + 5);
-    b.prop('lantern', s.x0 + 10);
-    b.prop('lantern', s.x0 + 22);
+    b.slope(2, { angle: 22 });
+    s = b.flat(8);
+    s.enemy('ninja', 4);
+    s.medalsAbove(1, 3, 2, 2);
+    b.prop('lantern', s.x0 + 3);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(16);
+    s.enemy('shinobi', 8);
+    b.prop('lantern', s.x0 + 4);
     b.pit(3, { fill: 'spikes' });
 
-    // --- 2. The courtyard: a samurai guard ---
-    s = b.flat(40);
+    // --- 2. The hillside courtyard: a 45-degree stone stair up to the samurai guard ---
+    s = b.flat(14);
     s.checkpoint(1);
     s.prompt('SAMURAI RAISE THEIR BLADE, THEN DASH. JUMP OVER THE SLASH AND SHOOT THEM IN THE BACK', 1, 26);
-    s.enemy('samurai', 12);
-    s.enemy('ninja', 22);
-    s.enemy('ninja', 29);
-    s.enemy('shinobi', 35);
-    s.capsule('S', 14, 6);
-    s.medals(18, 10, 4, 2, 2);
+    s.enemy('samurai', 10);
     b.prop('lantern', s.x0 + 6);
-    b.prop('lantern', s.x0 + 18);
-    b.prop('lantern', s.x0 + 34);
+    b.slope(3, { angle: 45 });
+    s = b.flat(16);
+    s.enemy('ninja', 3).enemy('ninja', 10);
+    s.capsule('S', 5, b.rowAbove(8));
+    s.medalsAbove(6, 4, 2, 2, 2);
+    b.prop('lantern', s.x0 + 2);
+    b.prop('lantern', s.x0 + 14);
+    b.slope(-3, { angle: 45 });
+    s = b.flat(10);
+    s.enemy('shinobi', 5);
+    b.prop('lantern', s.x0 + 4);
 
     // --- 3. The first shaft: wall jumps ---
     s = b.flat(12);
@@ -51,6 +62,13 @@ export const shadowCastle = {
     s = b.flat(12);
     s.enemy('ninja', 6);
     s.enemy('samurai', 11);
+    b.pit(3, { fill: 'spikes' });
+
+    // (continued) the castle cliff: up the rock and down a steep scree slide, then flat ground before the spikes
+    b.slope(2, { angle: 45 });
+    b.flat(4);
+    b.slope(-2, { angle: 67 });
+    b.flat(4);
     b.pit(3, { fill: 'spikes' });
 
     // --- 4. Rooftops over the moat of spikes ---
@@ -92,19 +110,21 @@ export const shadowCastle = {
     s.enemy('samurai', 6);
     s.enemy('shinobi', 10);
 
-    // --- 7. The roof garden approach ---
-    s = b.flat(40);
+    // --- 7. The roof garden approach: one last rise under the lanterns ---
+    s = b.flat(12);
     s.checkpoint(1);
     s.enemy('ninja', 8);
-    s.enemy('samurai', 15);
-    s.enemy('ninja', 23);
-    s.enemy('shinobi', 28);
-    s.enemy('samurai', 34);
-    s.capsule('H', 10, 6);
-    s.medals(18, 10, 4, 2, 2);
-    b.prop('torii', s.x0 + 38);
     b.prop('lantern', s.x0 + 4);
-    b.prop('lantern', s.x0 + 26);
+    b.slope(2, { angle: 22 });
+    s = b.flat(12);
+    s.enemy('samurai', 3).enemy('ninja', 9);
+    s.capsule('H', 6, b.rowAbove(8));
+    s.medalsAbove(4, 4, 2, 2, 2);
+    b.slope(-2, { angle: 22 });
+    s = b.flat(16);
+    s.enemy('shinobi', 4).enemy('samurai', 10);
+    b.prop('lantern', s.x0 + 2);
+    b.prop('torii', s.x0 + 14);
 
     // --- 8. The Oni Warlord ---
     s = b.flat(16);

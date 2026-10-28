@@ -80,8 +80,9 @@ test('the visual effects quality does not change the simulation', () => {
 });
 
 test('a different difficulty plays out differently (the options reach the simulation)', () => {
-  const normal = play(9, FRAMES, { opts: { difficulty: 'normal' } });
-  const hard = play(9, FRAMES, { opts: { difficulty: 'hard' } });
+  // twice the usual run: difficulty only shows once the first enemy fights back, and the castle's first foes stand on its far hill
+  const normal = play(9, FRAMES * 2, { opts: { difficulty: 'normal' } });
+  const hard = play(9, FRAMES * 2, { opts: { difficulty: 'hard' } });
   assert.notEqual(stateHash(normal), stateHash(hard));
 });
 
